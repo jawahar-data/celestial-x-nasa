@@ -62,9 +62,22 @@ def _ensure_gitignore() -> None:
 
 def load_api_key() -> str | None:
     """
-    Load the NASA API key from .env file.
+    Load the NASA API key.
+    Priority:
+      1. Streamlit Secrets (st.secrets) — used on Streamlit Cloud
+      2. .env file — used in local development
     Returns None if the key is not set or is the placeholder value.
     """
+    # ── 1. Try Streamlit Secrets first (Streamlit Cloud deployment) ──────────
+    try:
+        import streamlit as st
+        key = st.secrets.get("NASA_API_KEY", None)
+        if key and key.strip() and key.strip() != "your_nasa_firms_api_key_here":
+            return key.strip()
+    except Exception:
+        pass  # Not running inside Streamlit, or secrets not configured
+
+    # ── 2. Fall back to local .env file ───────────────────────────────────────
     env_path = ENV_FILE
     if not env_path.exists():
         return None
