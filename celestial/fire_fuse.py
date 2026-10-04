@@ -72,6 +72,7 @@ from typing import Optional
 import h3
 import numpy as np
 import pandas as pd
+import streamlit as st
 
 from .database import get_connection
 
@@ -502,6 +503,7 @@ def run_fire_fuse(
 
 
 # ── Database query helpers ────────────────────────────────────────────────────
+@st.cache_data(ttl=30)
 def get_events_dataframe(status: Optional[str] = None, limit: int = 500) -> pd.DataFrame:
     conn = get_connection()
     where = f"WHERE status='{status}'" if status else ""
@@ -513,6 +515,7 @@ def get_events_dataframe(status: Optional[str] = None, limit: int = 500) -> pd.D
     return df
 
 
+@st.cache_data(ttl=30)
 def get_event_timeline(event_id: str) -> pd.DataFrame:
     """Return the per-day observation timeline for a specific fire event."""
     conn = get_connection()
@@ -536,6 +539,7 @@ def get_event_timeline(event_id: str) -> pd.DataFrame:
     return df
 
 
+@st.cache_data(ttl=30)
 def get_event_observations(event_id: str, limit: int = 2000) -> pd.DataFrame:
     """Return all harmonized observations linked to a fire event."""
     conn = get_connection()
@@ -551,6 +555,7 @@ def get_event_observations(event_id: str, limit: int = 2000) -> pd.DataFrame:
     return df
 
 
+@st.cache_data(ttl=30)
 def get_event_h3_cells(event_id: str) -> list[str]:
     """Return the list of H3 cells for a fire event."""
     conn = get_connection()

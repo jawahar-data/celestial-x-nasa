@@ -32,6 +32,7 @@ rating systems and meteorological services.
 from typing import Optional
 import pandas as pd
 import numpy as np
+import streamlit as st
 
 from .database import get_connection
 
@@ -195,6 +196,7 @@ def assess_all_events(log_fn=None) -> int:
     return len(events)
 
 
+@st.cache_data(ttl=30)
 def get_risk_map_data() -> pd.DataFrame:
     """Return event centroids with risk level for map visualization."""
     conn = get_connection()

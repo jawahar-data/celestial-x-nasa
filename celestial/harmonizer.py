@@ -22,6 +22,7 @@ from typing import Optional
 import h3
 import numpy as np
 import pandas as pd
+import streamlit as st
 
 from .database import get_connection
 
@@ -199,6 +200,7 @@ def store_harmonized(harm_df: pd.DataFrame, raw_obs_ids: Optional[list] = None) 
     return inserted
 
 
+@st.cache_data(ttl=30)
 def get_harmonized_dataframe(limit: int = 10000) -> pd.DataFrame:
     """Load harmonized observations from DB into a DataFrame."""
     conn = get_connection()

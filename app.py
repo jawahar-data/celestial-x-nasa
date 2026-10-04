@@ -7,31 +7,24 @@ NASA Space Apps Challenge 2026
 Main entry point (Overview page).
 Multi-page navigation is handled by Streamlit's pages/ directory.
 """
-import importlib
-import celestial.styles
-importlib.reload(celestial.styles)
-from celestial.styles import (
-    ASTRA_ORB_HTML, GLOBAL_CSS, render_nav, footer,
-    section_header, metric_card, terminal_log, DECK_TOOLTIP,
-)
+import sys, os
+sys.path.insert(0, os.path.dirname(__file__))
+
 import streamlit as st
 import streamlit.components.v1 as components
 import pandas as pd
 import pydeck as pdk
 import math
 
-# ── Bootstrap database and package ───────────────────────────────────────────
-import sys, os
-sys.path.insert(0, os.path.dirname(__file__))
-from celestial.database import init_database, get_stats
-from celestial.config   import get_key_status
-from celestial.styles   import (
+from celestial.styles    import (
     ASTRA_ORB_HTML, GLOBAL_CSS, render_nav, footer,
     section_header, metric_card, terminal_log, DECK_TOOLTIP,
 )
-from celestial.fire_fuse   import get_events_dataframe
-from celestial.risk         import get_risk_map_data, RISK_COLOR_MAP
-from celestial.reports      import generate_pending_reports
+from celestial.database  import init_database, get_stats
+from celestial.config    import get_key_status
+from celestial.fire_fuse import get_events_dataframe
+from celestial.risk      import get_risk_map_data, RISK_COLOR_MAP
+from celestial.reports   import generate_pending_reports
 
 init_database()
 
@@ -51,8 +44,10 @@ st.markdown(GLOBAL_CSS, unsafe_allow_html=True)
 key_status = get_key_status()
 api_key    = key_status["key"]
 
-# ── Auto-generate any pending reports ─────────────────────────────────────────
-generate_pending_reports()
+# ── Auto-generate pending reports ONCE per session (not on every rerun) ────────
+if not st.session_state.get("_reports_generated"):
+    generate_pending_reports()
+    st.session_state["_reports_generated"] = True
 
 # ── Navigation bar ────────────────────────────────────────────────────────────
 render_nav("OVERVIEW")

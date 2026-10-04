@@ -18,6 +18,7 @@ api_configuration       : Stored API configuration (key masked)
 
 import sqlite3
 import os
+import streamlit as st
 from pathlib import Path
 
 DB_PATH = Path(__file__).parent.parent / "celestial_x.db"
@@ -211,6 +212,7 @@ def init_database() -> None:
     conn.close()
 
 
+@st.cache_data(ttl=30)
 def get_stats() -> dict:
     """Return high-level database statistics for the Overview page."""
     conn = get_connection()
