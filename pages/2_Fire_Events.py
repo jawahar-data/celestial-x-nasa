@@ -229,7 +229,13 @@ if selected_id:
             st.markdown('<div style="border-radius:16px;overflow:hidden;border:1px solid rgba(255,255,255,0.08);">', unsafe_allow_html=True)
             st.pydeck_chart(deck, use_container_width=True, height=480)
             # Removed split close div
-            st.caption("🔴 MODIS (1 km)  |  🟡 VIIRS (375 m)  |  Size ∝ √FRP  |  Satellite basemap")
+            st.markdown(
+                '<p style="font-size:0.78rem;color:rgba(255,255,255,0.55);margin-top:8px;text-align:center;">'
+                '<span style="color:#ef4444;">&#9679;</span> MODIS (1 km) &nbsp;|&nbsp; '
+                '<span style="color:#eab308;">&#9679;</span> VIIRS (375 m) &nbsp;|&nbsp; '
+                'Size &prop; &radic;FRP &nbsp;&middot;&nbsp; Satellite basemap</p>',
+                unsafe_allow_html=True
+            )
         else:
             st.info("No observation map data for this event.")
 

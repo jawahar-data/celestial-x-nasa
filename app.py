@@ -246,10 +246,14 @@ if not risk_df.empty:
         unsafe_allow_html=True,
     )
     st.pydeck_chart(deck, use_container_width=True, height=500)
-    st.markdown("</div>", unsafe_allow_html=True)
-    st.caption(
-        "🔴 Very High  |  🟠 High  |  🟡 Moderate  |  🟢 Low  "
-        "·  3D column height = Peak FRP  ·  Satellite basemap"
+    st.markdown(
+        '<p style="font-size:0.78rem;color:rgba(255,255,255,0.55);margin-top:8px;text-align:center;">'
+        '<span style="color:#dc2626;">&#9679;</span> Very High &nbsp;|&nbsp; '
+        '<span style="color:#ea580c;">&#9679;</span> High &nbsp;|&nbsp; '
+        '<span style="color:#ca8a04;">&#9679;</span> Moderate &nbsp;|&nbsp; '
+        '<span style="color:#16a34a;">&#9679;</span> Low &nbsp;&middot;&nbsp; '
+        '3D column height = Peak FRP &nbsp;&middot;&nbsp; Satellite basemap</p>',
+        unsafe_allow_html=True
     )
 
 # ── Quick-start guide ─────────────────────────────────────────────────────────
