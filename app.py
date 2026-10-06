@@ -283,8 +283,6 @@ When a fire event closes, a final report is auto-generated.
 View and download from **📋 Reports**.
 
 ---
-
-    </div>
     """, unsafe_allow_html=True)
 
     st.markdown("""
