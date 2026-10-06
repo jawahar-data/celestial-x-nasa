@@ -125,7 +125,8 @@ if selected_id:
     score, level = compute_risk_score(ev.to_dict())
 
     dur_hrs = ev.get("duration_hours")
-    dur_str = f"{int(dur_hrs//24)}d {int(dur_hrs%24)}h" if dur_hrs else "—"
+    import math
+    dur_str = f"{int(dur_hrs//24)}d {int(dur_hrs%24)}h" if dur_hrs is not None and not math.isnan(dur_hrs) else "—"
     sat_str = " + ".join(
         [s for s, c in [("MODIS", "modis_count"), ("VIIRS", "viirs_count")]
          if ev.get(c, 0) > 0]
