@@ -9,4 +9,4 @@ pandas>=2.0.0
 h3>=3.7.6
 numpy>=1.24.0
 python-dotenv>=1.0.0
-fpdf==1.7.2
+fpdf==1.7.2plotly>=5.18.0

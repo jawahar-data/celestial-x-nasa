@@ -1204,3 +1204,4 @@ try:
         GLOBAL_CSS = GLOBAL_CSS.replace("{_bg_b64}", _bg_b64)
 except Exception as e:
     pass
+
