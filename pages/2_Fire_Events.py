@@ -17,6 +17,8 @@ from celestial.fire_fuse  import (get_events_dataframe, get_event_timeline,
                                    get_event_observations, get_event_h3_cells)
 from celestial.risk       import compute_risk_score, RISK_COLOR_MAP
 from celestial.reports    import generate_event_report, get_report_content
+from celestial.explainability import explain_event_harmonization
+import plotly.graph_objects as go
 
 init_database()
 st.set_page_config(
@@ -175,7 +177,7 @@ if selected_id:
     # Removed split close div
 
     # Detail tabs
-    t1, t2, t3, t4 = st.tabs(["📅  Timeline", "🗺  Satellite Map", "📊  Analysis", "📋  Report"])
+    t1, t2, t3, t4, t5, t6 = st.tabs(["🕒 Timeline", "🗺️ Satellite Map", "⚡ Risk Analysis", "🔍 Harmonization Audit", "📈 Persistence Analytics", "📄 Incident Report"])
 
     with t1:
         timeline = get_event_timeline(selected_id)
@@ -261,12 +263,51 @@ if selected_id:
             st.bar_chart(sat_cnt.set_index("Satellite"))
 
     with t4:
+        st.markdown(section_header("🔍", "FIRE-FUSE RECONCILIATION AUDIT"), unsafe_allow_html=True)
+        audit = explain_event_harmonization(selected_id)
+        if "error" not in audit and audit.get("trace_records"):
+            st.markdown(f"**Reconciliation Audit Trail for {selected_id}** — {audit['total_observations_fused']} observations fused into event:")
+            trace_df = pd.DataFrame(audit["trace_records"])
+            st.dataframe(
+                trace_df[["step", "decision", "satellite", "timestamp", "lat", "lon", "frp", "norm_confidence", "distance_to_centroid_km", "time_delta_hours", "justification"]],
+                use_container_width=True
+            )
+        else:
+            st.info("No detailed observation trace records available for this event.")
+
+    with t5:
+        st.markdown(section_header("📈", "FIRE PERSISTENCE & INTENSITY EVOLUTION"), unsafe_allow_html=True)
+        obs_df_p = get_event_observations(selected_id)
+        if not obs_df_p.empty and "timestamp" in obs_df_p.columns and "frp" in obs_df_p.columns:
+            obs_df_p["timestamp"] = pd.to_datetime(obs_df_p["timestamp"])
+            obs_df_p = obs_df_p.sort_values("timestamp")
+            fig_p = go.Figure()
+            fig_p.add_trace(go.Scatter(
+                x=obs_df_p["timestamp"], y=obs_df_p["frp"],
+                mode="lines+markers",
+                name="Fire Radiative Power (MW)",
+                line=dict(color="#ef4444", width=3),
+                marker=dict(size=8, color="#f59e0b")
+            ))
+            fig_p.update_layout(
+                title=f"Intensity Progression Over Event Lifespan ({selected_id})",
+                paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
+                font=dict(color="#fff"),
+                xaxis=dict(title="Observation UTC Timestamp", gridcolor="rgba(255,255,255,0.06)"),
+                yaxis=dict(title="Fire Radiative Power (MW)", gridcolor="rgba(255,255,255,0.06)"),
+                margin=dict(l=40, r=20, t=40, b=40), height=340
+            )
+            st.plotly_chart(fig_p, use_container_width=True)
+        else:
+            st.info("Insufficient observation history for persistence curve.")
+
+    with t6:
         existing = get_report_content(selected_id)
         if existing:
             dc1, dc2 = st.columns([1, 4])
             with dc1:
                 st.download_button(
-                    "⬇ Download .md",
+                    "💾 Download .md",
                     data=existing,
                     file_name=f"CELESTIALX_{selected_id}.md",
                     mime="text/markdown",
@@ -276,11 +317,11 @@ if selected_id:
                 st.markdown(existing)
         else:
             st.info(f"No report generated yet. Status: **{ev.get('status')}**")
-            if st.button("📋  Generate Report Now", use_container_width=False):
-                with st.spinner("Generating…"):
+            if st.button("📄  Generate Report Now", use_container_width=False):
+                with st.spinner("Generating..."): 
                     r = generate_event_report(selected_id)
                 if r:
-                    st.success("✓ Report generated!")
+                    st.success("✅ Report generated!")
                     st.rerun()
-
 st.markdown(footer(), unsafe_allow_html=True)
+

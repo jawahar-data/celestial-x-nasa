@@ -1079,19 +1079,22 @@ def terminal_log(logs: list, title: str = "fire-fuse.log") -> str:
 
 # Page route map — (icon, label, relative path from project root)
 _NAV_PAGES = [
-    ("🌐", "OVERVIEW",      "app"),
-    ("🗺", "LIVE MAP",      "pages/1_Live_Map"),
-    ("🔥", "FIRE EVENTS",   "pages/2_Fire_Events"),
-    ("⚠", "RISK FORECAST",  "pages/3_Risk_Forecast"),
-    ("📊", "ANALYTICS",     "pages/4_Analytics"),
-    ("📋", "REPORTS",       "pages/5_Reports"),
-    ("💾", "DATA",          "pages/6_Data"),
-    ("⚙", "SETTINGS",      "pages/7_Settings"),
+    ("🌐", "OVERVIEW",          "app"),
+    ("🗺️", "LIVE MAP",          "pages/1_Live_Map"),
+    ("📅", "BURNING CALENDAR",  "pages/8_Burning_Calendar"),
+    ("🔬", "CALIBRATION LAB",   "pages/9_Validation"),
+    ("🔥", "FIRE EVENTS",       "pages/2_Fire_Events"),
+    ("🤖", "COPILOT",           "pages/10_Copilot"),
+    ("⚡", "RISK FORECAST",     "pages/3_Risk_Forecast"),
+    ("📊", "ANALYTICS",         "pages/4_Analytics"),
+    ("📄", "REPORTS",           "pages/5_Reports"),
+    ("📥", "DATA",              "pages/6_Data"),
+    ("⚙️", "SETTINGS",          "pages/7_Settings"),
 ]
 
 
 def render_nav(active: str = "OVERVIEW") -> None:
-    """Render premium sticky nav bar — brand + nav links in one HTML block (no gap)."""
+    """Render premium sticky nav bar - brand + nav links in one HTML block (no gap)."""
     import streamlit as st
     from datetime import datetime, timezone
 
@@ -1099,14 +1102,17 @@ def render_nav(active: str = "OVERVIEW") -> None:
 
     # Page routes: (icon, label, url_path)
     pages = [
-        ("🌐", "OVERVIEW",       "/"),
-        ("🗺", "LIVE MAP",       "/Live_Map"),
-        ("🔥", "FIRE EVENTS",    "/Fire_Events"),
-        ("⚠",  "RISK FORECAST",  "/Risk_Forecast"),
-        ("📊", "ANALYTICS",      "/Analytics"),
-        ("📋", "REPORTS",        "/Reports"),
-        ("💾", "DATA",           "/Data"),
-        ("⚙",  "SETTINGS",      "/Settings"),
+        ("🌐", "OVERVIEW",          "/"),
+        ("🗺️", "LIVE MAP",          "/Live_Map"),
+        ("📅", "BURNING CALENDAR",  "/Burning_Calendar"),
+        ("🔬", "CALIBRATION LAB",   "/Validation"),
+        ("🔥", "FIRE EVENTS",       "/Fire_Events"),
+        ("🤖", "COPILOT",           "/Copilot"),
+        ("⚡", "RISK FORECAST",     "/Risk_Forecast"),
+        ("📊", "ANALYTICS",         "/Analytics"),
+        ("📄", "REPORTS",           "/Reports"),
+        ("📥", "DATA",              "/Data"),
+        ("⚙️", "SETTINGS",          "/Settings"),
     ]
 
     def link_style(label: str) -> str:
@@ -1204,4 +1210,5 @@ try:
         GLOBAL_CSS = GLOBAL_CSS.replace("{_bg_b64}", _bg_b64)
 except Exception as e:
     pass
+
 
