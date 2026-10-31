@@ -172,9 +172,11 @@ with tab_cal:
             y=[str(y) for y in pivot.index.tolist()],
             colorscale=scale_name,
             colorbar=dict(
-                title="Percentile Rank" if mode_key=="percentile" else ("Anomaly %" if mode_key=="anomaly_pct" else "Hotspots"),
+                title=dict(
+                    text="Percentile Rank" if mode_key=="percentile" else ("Anomaly %" if mode_key=="anomaly_pct" else "Hotspots"),
+                    font=dict(color="#fff", size=11),
+                ),
                 tickfont=dict(color="#fff", size=10),
-                titlefont=dict(color="#fff", size=11),
             ),
             hovertemplate="<b>Year: %{y} • %{x}</b><br>Value: <b>%{z:,.1f}</b><extra></extra>",
         ))
@@ -421,3 +423,4 @@ with col_dl_info:
     """, unsafe_allow_html=True)
 
 st.markdown(footer(), unsafe_allow_html=True)
+
