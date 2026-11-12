@@ -349,40 +349,51 @@ def _update_event(
 
 
 # ── Event closure check ───────────────────────────────────────────────────────
-def close_inactive_events(closure_days: int, conn, log_fn=None) -> int:
+def close_inactive_events(closure_days: int = 3, conn=None, log_fn=None) -> int:
     """
     Mark as CLOSED any open events where last_observed_time is older
     than closure_days. Returns count of events closed.
     """
-    def log(msg):
-        if log_fn:
-            log_fn(msg)
-    cutoff = (datetime.now(tz=timezone.utc) - timedelta(days=closure_days)).strftime("%Y-%m-%dT%H:%M:%SZ")
-    cur = conn.cursor()
-    cur.execute("""
-        UPDATE fire_events
-        SET status='CLOSED', end_time=?, updated_at=?
-        WHERE status NOT IN ('CLOSED')
-        AND last_observed_time < ?
-    """, (_now_iso(), _now_iso(), cutoff))
-    count = cur.rowcount
-    if count:
-        log(f"⊗ {count} event(s) closed (inactive > {closure_days} days)")
-    # Compute duration for closed events
-    cur.execute("""
-        SELECT event_id, start_time, end_time FROM fire_events
-        WHERE status='CLOSED' AND duration_hours IS NULL
-    """)
-    for row in cur.fetchall():
-        t0 = _parse_dt(row["start_time"])
-        t1 = _parse_dt(row["end_time"])
-        if t0 and t1:
-            hrs = (t1 - t0).total_seconds() / 3600.0
-            cur.execute(
-                "UPDATE fire_events SET duration_hours=? WHERE event_id=?",
-                (round(hrs, 2), row["event_id"])
-            )
-    return count
+    own_conn = False
+    if conn is None:
+        conn = get_connection()
+        own_conn = True
+
+    try:
+        def log(msg):
+            if log_fn:
+                log_fn(msg)
+        cutoff = (datetime.now(tz=timezone.utc) - timedelta(days=closure_days)).strftime("%Y-%m-%dT%H:%M:%SZ")
+        cur = conn.cursor()
+        cur.execute("""
+            UPDATE fire_events
+            SET status='CLOSED', end_time=?, updated_at=?
+            WHERE status NOT IN ('CLOSED')
+            AND last_observed_time < ?
+        """, (_now_iso(), _now_iso(), cutoff))
+        count = cur.rowcount
+        if count:
+            log(f"⊗ {count} event(s) closed (inactive > {closure_days} days)")
+        # Compute duration for closed events
+        cur.execute("""
+            SELECT event_id, start_time, end_time FROM fire_events
+            WHERE status='CLOSED' AND duration_hours IS NULL
+        """)
+        for row in cur.fetchall():
+            t0 = _parse_dt(row["start_time"])
+            t1 = _parse_dt(row["end_time"])
+            if t0 and t1:
+                hrs = (t1 - t0).total_seconds() / 3600.0
+                cur.execute(
+                    "UPDATE fire_events SET duration_hours=? WHERE event_id=?",
+                    (round(hrs, 2), row["event_id"])
+                )
+        if own_conn:
+            conn.commit()
+        return count
+    finally:
+        if own_conn:
+            conn.close()
 
 
 # ── Main FIRE-FUSE Pipeline ────────────────────────────────────────────────────

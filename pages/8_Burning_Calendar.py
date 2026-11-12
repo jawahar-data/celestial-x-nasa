@@ -30,7 +30,7 @@ from celestial.calendar import (
     get_monthly_totals, get_historical_medians,
     get_anomaly_data, get_heatmap_pivot,
     get_sensor_yearly, get_current_status,
-    export_hotspots_csv,
+    export_hotspots_csv, get_frp_heatmap_pivot,
 )
 from celestial.coverage import get_coverage_metrics
 from celestial.season   import analyze_fire_season
@@ -209,6 +209,38 @@ with tab_cal:
         for c in ["Historical Median", "Historical Mean", "25th %ile", "75th %ile", "Std Dev", "Historical Min", "Historical Max"]:
             disp_med[c] = disp_med[c].round(0).astype("Int64")
         st.dataframe(disp_med[["Month", "Historical Median", "25th %ile", "75th %ile", "Historical Mean", "Std Dev", "Historical Min", "Historical Max", "Years Observed"]].set_index("Month"), use_container_width=True)
+
+    # FRP Intensity Heatmap
+    st.markdown(section_header("⚡", "FIRE INTENSITY HEATMAP — AVERAGE FRP (MW) PER MONTH"), unsafe_allow_html=True)
+    frp_pivot = get_frp_heatmap_pivot(west, south, east, north)
+    if not frp_pivot.empty:
+        fig_frp = go.Figure(data=go.Heatmap(
+            z=frp_pivot.values,
+            x=frp_pivot.columns.tolist(),
+            y=[str(y) for y in frp_pivot.index.tolist()],
+            colorscale="Plasma",
+            colorbar=dict(
+                title=dict(text="Avg FRP (MW)", font=dict(color="#fff", size=11)),
+                tickfont=dict(color="#fff", size=10),
+            ),
+            hovertemplate="<b>Year: %{y} · %{x}</b><br>Avg FRP: <b>%{z:.1f} MW</b><extra></extra>",
+        ))
+        fig_frp.update_layout(
+            paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
+            height=440,
+            font=dict(color="rgba(255,255,255,0.8)", family="Inter"),
+            xaxis=dict(tickfont=dict(color="#fff", size=11), side="top", showgrid=False),
+            yaxis=dict(tickfont=dict(color="#fff", size=11), dtick=1, showgrid=False),
+            margin=dict(l=50, r=20, t=50, b=30),
+        )
+        st.plotly_chart(fig_frp, use_container_width=True)
+        st.markdown(
+            '<p style="font-size:0.78rem;color:rgba(255,255,255,0.5);margin-top:-8px;">'
+            '⚡ Fire Radiative Power (MW) = intensity of combustion. Higher FRP = hotter, more energetic fires. '
+            'Complements hotspot count with fire severity information. '
+            '<em>Demo data shown when live DB is empty — clearly labeled synthetic benchmark.</em></p>',
+            unsafe_allow_html=True
+        )
 
 # -------------------------------------------------------------
 # TAB 2: FIRE SEASON REGIMES

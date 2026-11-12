@@ -29,17 +29,20 @@ Because VIIRS has:
 
 ```
 CELESTIAL X Platform
-├── 📅 BURNING CALENDAR     • 2000–2026 Multi-Decade Heatmaps, Anomaly %, Percentiles & CSV Export
-├── 🔬 CALIBRATION LAB     • Cross-Sensor Calibration, Before/After Consistency & FIRE-FUSE Traceability
-├── 🗺️ LIVE SATELLITE MAP  • 3D Interactive Hotspot Map (FRP, Day/Night, Sensor Layers)
-├── 🔥 FIRE EVENTS         • Persistent Event Tracking, Lifecycle & Intensity Evolution Curves
-├── 🤖 COPILOT             • Data-Grounded AI Assistant with Verifiable SQL Queries (No Hallucinations)
-├── 🛰️ COVERAGE INTEL      • Orbital Pass Availability Timelines & Coverage-Adjusted Activity Indicators
-├── 🔥 SEASON REGIMES      • Automated Fire Season Onset, Peak, Cessation, and Arrival Shifts
-├── 🌿 PROTECTED AREAS     • Inside vs. 10 km Buffer Geofencing for Conservation Hotspots (e.g. Mudumalai)
-├── 🌡️ ENVIRONMENTAL CONTEXT• Temperature, Humidity, Wind Velocity, and Fine Fuel Dryness Integration
-├── 📄 REPORTS & BRIEFS    • Automated Situation Briefings for Command Teams & PDF/MD Event Audits
-└── 📥 DATA ENGINE         • Live NASA FIRMS API Pipeline + SQLite Immutable Provenance Store
+├── 📅 BURNING CALENDAR     • 2000–2026 Multi-Decade Heatmaps, FRP Severity, Anomaly %, Percentiles & CSV Export
+├── 🕰️ TIME MACHINE         • Interactive 2001–Present Timeline Slider with Dynamic Climatology Comparison
+├── 🌴 TAMIL NADU DEEP DIVE • Sub-Regional Breakdown (Mudumalai, Western Ghats, Anamalai & Inter-State Corridor)
+├── 📐 METHODOLOGY          • Formal LaTeX Formulations, Confidence Mapping, FAI Index & Known Limitations
+├── 🔬 CALIBRATION LAB      • Cross-Sensor Calibration, Empirical Scaling (3.82x) & FIRE-FUSE Audit
+├── 🗺️ LIVE SATELLITE MAP   • 3D Interactive Hotspot Map (FRP, Day/Night, Sensor Layers)
+├── 🔥 FIRE EVENTS          • Persistent Event Tracking, Lifecycle & Intensity Evolution Curves
+├── 🤖 COPILOT              • Data-Grounded AI Assistant with Verifiable SQL Queries (No Hallucinations)
+├── 🛰️ COVERAGE INTEL       • Orbital Pass Availability Timelines & Coverage-Adjusted Activity Indicators
+├── 🔥 SEASON REGIMES       • Automated Fire Season Onset, Peak, Cessation, and Arrival Shifts
+├── 🌿 PROTECTED AREAS      • Inside vs. 10 km Buffer Geofencing for Conservation Hotspots (e.g. Mudumalai)
+├── 🌡️ ENVIRONMENTAL CONTEXT • Temperature, Humidity, Wind Velocity, and Fine Fuel Dryness Integration
+├── 📄 REPORTS & BRIEFS     • Automated Situation Briefings for Command Teams & PDF/MD Event Audits
+└── 📥 DATA ENGINE          • Live NASA FIRMS API Pipeline + SQLite Immutable Provenance Store + Cache Refresh
 ```
 
 ---
@@ -108,6 +111,10 @@ NASA_API_KEY=your_firms_map_key_here
 
 - [x] **Harmonized Burning Activity Calendar** (covering 2000 through present)
 - [x] **Multi-Year Monthly Medians & Anomaly Comparisons**
+- [x] **FRP Intensity Heatmap** (Dual view: Hotspot density + Combustion energetic severity)
+- [x] **Historical Fire Time Machine** (Interactive timeline slider 2001–present)
+- [x] **Tamil Nadu Deep Dive** (Western Ghats, Mudumalai & Anamalai tiger reserves, tri-state corridor)
+- [x] **Scientific Methodology Documentation** (KaTeX mathematical formulations & limitations)
 - [x] **Downloadable CSV Export** of harmonized active fire hotspots
 - [x] **Sensor Bias Calibration Laboratory** (MODIS vs. VIIRS detection rates & FRP distributions)
 - [x] **Satellite Observation Coverage Intelligence** (accounting for clouds and orbital gaps)
@@ -115,6 +122,7 @@ NASA_API_KEY=your_firms_map_key_here
 - [x] **Demonstration Region Profiles**: Tamil Nadu (India), Amazon (Brazil), California (USA), Australia, Mediterranean
 - [x] **Interactive Area-of-Interest Selection** (Presets, Bounding Boxes, GeoJSON upload)
 - [x] **Accessible Color Ramps** (Viridis, Inferno, Plasma, Cividis)
+- [x] **Auto-Refresh Data Control** (In-app memory cache synchronization)
 
 ---
 

@@ -136,6 +136,20 @@ st.markdown(f"""
 <div class="cx-divider"></div>
 """, unsafe_allow_html=True)
 
+# ── Auto-Refresh & Ingestion Trigger ──────────────────────────────────────────
+_col_rf, _col_msg = st.columns([1.5, 5])
+with _col_rf:
+    if st.button("🔄 Refresh Live Data", help="Clear cache and fetch latest observations", use_container_width=True):
+        st.cache_data.clear()
+        st.rerun()
+with _col_msg:
+    st.markdown(
+        '<div style="font-size:0.78rem;color:rgba(255,255,255,0.6);padding-top:8px;">'
+        '⚡ Synchronize local memory cache with live database & recalculate baseline deviations'
+        '</div>',
+        unsafe_allow_html=True
+    )
+
 # ── Live statistics ───────────────────────────────────────────────────────────
 stats = get_stats()
 st.markdown(section_header("📊", "LIVE SYSTEM METRICS"), unsafe_allow_html=True)
