@@ -55,32 +55,79 @@ render_nav("OVERVIEW")
 # ── First-run API key setup screen ────────────────────────────────────────────
 if not key_status["configured"]:
     st.markdown("""
-    <div style="max-width:520px;margin:90px auto;text-align:center;animation:fadeUp 0.6s ease;">
-      <div style="font-size:4rem;margin-bottom:24px;filter:drop-shadow(0 0 32px rgba(100,180,255,0.8));animation:logoFloat 8s ease-in-out infinite;">🔭</div>
-      <div style="font-family:'Orbitron',sans-serif;font-size:2rem;font-weight:900;color:#ffffff;letter-spacing:5px;margin-bottom:6px;text-shadow:0 0 40px rgba(100,160,255,0.4);">CELESTIAL X</div>
-      <div style="font-family:'Inter',sans-serif;font-size:0.7rem;color: #ffffff;letter-spacing:4px;text-transform:uppercase;margin-bottom:40px;">NASA API CONFIGURATION</div>
-      <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:20px;padding:36px 40px;backdrop-filter:blur(40px);box-shadow:0 24px 80px rgba(0,0,0,0.7),inset 0 1px 0 rgba(255,255,255,0.05);">
-        <p style="color: #ffffff;font-size:0.85rem;line-height:1.9;margin-bottom:28px;font-weight:300;">
-          Enter your <strong style='color: #ffffff;'>NASA FIRMS API key</strong> once. It will be securely stored
-          in a local <code>.env</code> file — never committed to git or exposed to the browser.<br/><br/>
-          Get a free key at <a href='https://firms.modaps.eosdis.nasa.gov/api/area/' target='_blank'>firms.modaps.eosdis.nasa.gov</a>
+    <div style="max-width:760px;margin:50px auto 30px auto;text-align:center;animation:fadeUp 0.6s ease;">
+      <div style="font-size:3.5rem;margin-bottom:16px;filter:drop-shadow(0 0 32px rgba(100,180,255,0.8));animation:logoFloat 8s ease-in-out infinite;">🔭</div>
+      <div style="font-family:'Orbitron',sans-serif;font-size:2.2rem;font-weight:900;color:#ffffff;letter-spacing:5px;margin-bottom:6px;text-shadow:0 0 40px rgba(100,160,255,0.4);">CELESTIAL X</div>
+      <div style="font-family:'Inter',sans-serif;font-size:0.75rem;color:#60a5fa;letter-spacing:4px;text-transform:uppercase;margin-bottom:28px;">
+        NASA SPACE APPS CHALLENGE 2026 • SYSTEM ONBOARDING & SETUP
+      </div>
+
+      <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.1);border-radius:20px;padding:28px 36px;backdrop-filter:blur(40px);box-shadow:0 24px 80px rgba(0,0,0,0.7);text-align:left;margin-bottom:28px;">
+        <h3 style="font-family:'Orbitron',sans-serif;color:#fff;font-size:1.1rem;margin-bottom:12px;display:flex;align-items:center;gap:10px;">
+          <span>🚀</span> Quick-Start Instructions — How to Run & Work With CELESTIAL X
+        </h3>
+        <p style="color:rgba(255,255,255,0.85);font-size:0.86rem;line-height:1.8;margin-bottom:16px;">
+          CELESTIAL X reconciles over 20 years of NASA MODIS (1 km) and VIIRS (375 m) active fire observations into a harmonized burning activity calendar and persistent event intelligence platform.
         </p>
+
+        <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:12px;margin:18px 0;">
+          <div style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:12px 14px;">
+            <b style="color:#60a5fa;font-size:0.8rem;">1. SELECT LAUNCH MODE</b>
+            <p style="font-size:0.75rem;color:rgba(255,255,255,0.65);margin-top:4px;line-height:1.5;">
+              Use <b>Demo Mode</b> for instant 1-click access with preloaded 2000–2026 data, or enter a free NASA FIRMS key for live stream.
+            </p>
+          </div>
+          <div style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:12px 14px;">
+            <b style="color:#f59e0b;font-size:0.8rem;">2. BURNING CALENDARS</b>
+            <p style="font-size:0.75rem;color:rgba(255,255,255,0.65);margin-top:4px;line-height:1.5;">
+              Navigate to <b>📅 Burning Calendar</b> & <b>🕰️ Time Machine</b> to analyze 20-year baselines, anomaly percentiles & FRP intensity.
+            </p>
+          </div>
+          <div style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:12px 14px;">
+            <b style="color:#10b981;font-size:0.8rem;">3. RUN FIRE-FUSE</b>
+            <p style="font-size:0.75rem;color:rgba(255,255,255,0.65);margin-top:4px;line-height:1.5;">
+              Open <b>📥 Data Pipeline</b> to ingest observations, harmonize confidences, and cluster multi-day persistent events via H3 grids.
+            </p>
+          </div>
+          <div style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:12px 14px;">
+            <b style="color:#ec4899;font-size:0.8rem;">4. COPILOT & AUDIT</b>
+            <p style="font-size:0.75rem;color:rgba(255,255,255,0.65);margin-top:4px;line-height:1.5;">
+              Ask natural language questions in <b>🤖 Copilot</b> and audit cross-sensor calibration (3.82x ratio) in <b>🔬 Calibration Lab</b>.
+            </p>
+          </div>
+        </div>
+
+        <div style="height:1px;background:rgba(255,255,255,0.08);margin:20px 0;"></div>
+
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+          <span style="font-size:0.82rem;color:rgba(255,255,255,0.7);">
+            👉 <b>Recommended for evaluation:</b> Click <b>Demo Mode</b> to explore immediately with all datasets preloaded.
+          </span>
+          <span style="font-size:0.75rem;color:rgba(255,255,255,0.5);">
+            Free key at <a href='https://firms.modaps.eosdis.nasa.gov/api/area/' target='_blank' style='color:#60a5fa;'>firms.modaps.eosdis.nasa.gov</a>
+          </span>
+        </div>
       </div>
     </div>
     """, unsafe_allow_html=True)
 
-    col_l, col_c, col_r = st.columns([1, 2.2, 1])
+    col_l, col_c, col_r = st.columns([1, 2.4, 1])
     with col_c:
         entered_key = st.text_input(
-            "NASA FIRMS API Key",
+            "NASA FIRMS API Key (Optional)",
             type="password",
-            placeholder="Paste your NASA FIRMS API key…",
+            placeholder="Paste your NASA FIRMS API key here (or click Demo Mode below)…",
             label_visibility="collapsed",
         )
         st.markdown('<div style="height:4px"></div>', unsafe_allow_html=True)
-        save_col, demo_col = st.columns(2)
+        demo_col, save_col = st.columns(2)
+        with demo_col:
+            if st.button("🎯  Launch in Demo Mode", use_container_width=True, help="Explore immediately with preloaded 2000-2026 multi-decade records"):
+                from celestial.config import save_api_key
+                save_api_key("DEMO_MODE")
+                st.rerun()
         with save_col:
-            if st.button("🔐  Save & Continue", use_container_width=True):
+            if st.button("🔐  Save & Connect Live API", use_container_width=True, help="Validate and connect your live NASA FIRMS API key"):
                 if entered_key.strip():
                     from celestial.config import save_api_key, validate_api_key
                     with st.spinner("Validating against NASA FIRMS…"):
@@ -92,12 +139,7 @@ if not key_status["configured"]:
                     else:
                         st.error(f"✗ {msg}")
                 else:
-                    st.warning("Please enter an API key.")
-        with demo_col:
-            if st.button("🎯  Demo Mode", use_container_width=True):
-                from celestial.config import save_api_key
-                save_api_key("DEMO_MODE")
-                st.rerun()
+                    st.warning("Please paste an API key, or click Demo Mode.")
     st.markdown(footer(), unsafe_allow_html=True)
     st.stop()
 
@@ -149,6 +191,67 @@ with _col_msg:
         '</div>',
         unsafe_allow_html=True
     )
+
+# ── First-Time Instructions & Operational Guide ──────────────────────────────
+guide_expanded = not st.session_state.get("_guide_dismissed", False)
+with st.expander("📖 FIRST-TIME OPERATIONAL GUIDE & SYSTEM INSTRUCTIONS (Click to collapse / expand)", expanded=guide_expanded):
+    st.markdown("""
+    <div style="font-size:0.85rem;color:rgba(255,255,255,0.85);margin-bottom:14px;line-height:1.7;">
+      Welcome to <b>CELESTIAL X</b>! Here is a quick walkthrough on how to work with each module across the platform:
+    </div>
+    """, unsafe_allow_html=True)
+    
+    cg1, cg2, cg3, cg4 = st.columns(4)
+    with cg1:
+        st.markdown("""
+        <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:14px;height:100%;">
+          <div style="color:#60a5fa;font-family:'Orbitron',sans-serif;font-size:0.78rem;font-weight:700;margin-bottom:6px;">
+            1. BURNING CALENDARS
+          </div>
+          <p style="font-size:0.75rem;color:rgba(255,255,255,0.7);line-height:1.6;margin:0;">
+            Open <b>📅 Burning Calendar</b> to view the 2000–2026 harmonized matrix, FRP intensity, and anomaly % vs 20-year medians. Use <b>🕰️ Time Machine</b> to drag the year slider from 2001 to present.
+          </p>
+        </div>
+        """, unsafe_allow_html=True)
+    with cg2:
+        st.markdown("""
+        <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:14px;height:100%;">
+          <div style="color:#f59e0b;font-family:'Orbitron',sans-serif;font-size:0.78rem;font-weight:700;margin-bottom:6px;">
+            2. RUN FIRE-FUSE
+          </div>
+          <p style="font-size:0.75rem;color:rgba(255,255,255,0.7);line-height:1.6;margin:0;">
+            Navigate to <b>📥 Data</b> and click <b>"⚡ Launch FIRE-FUSE Pipeline"</b>. It ingests FIRMS data, maps confidences to [0,1], and clusters multi-day persistent fires via H3 hexagonal grids.
+          </p>
+        </div>
+        """, unsafe_allow_html=True)
+    with cg3:
+        st.markdown("""
+        <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:14px;height:100%;">
+          <div style="color:#10b981;font-family:'Orbitron',sans-serif;font-size:0.78rem;font-weight:700;margin-bottom:6px;">
+            3. MONITOR RESERVES
+          </div>
+          <p style="font-size:0.75rem;color:rgba(255,255,255,0.7);line-height:1.6;margin:0;">
+            Visit <b>🌴 Tamil Nadu</b> for sub-regional tracking of Mudumalai & Anamalai tiger reserves and the tri-state corridor. Explore 3D active satellite passes on <b>🗺️ Live Map</b>.
+          </p>
+        </div>
+        """, unsafe_allow_html=True)
+    with cg4:
+        st.markdown("""
+        <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:14px;height:100%;">
+          <div style="color:#ec4899;font-family:'Orbitron',sans-serif;font-size:0.78rem;font-weight:700;margin-bottom:6px;">
+            4. AUDIT & COPILOT
+          </div>
+          <p style="font-size:0.75rem;color:rgba(255,255,255,0.7);line-height:1.6;margin:0;">
+            Inspect sensor sensitivity biases (3.82x ratio) in <b>🔬 Calibration Lab</b> and KaTeX formulas in <b>📐 Methodology</b>. Ask natural language questions in <b>🤖 Copilot</b>.
+          </p>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    st.markdown('<div style="height:8px;"></div>', unsafe_allow_html=True)
+    if guide_expanded:
+        if st.button("✓ Got it! Dismiss Guide", key="dismiss_guide_btn"):
+            st.session_state["_guide_dismissed"] = True
+            st.rerun()
 
 # ── Live statistics ───────────────────────────────────────────────────────────
 stats = get_stats()

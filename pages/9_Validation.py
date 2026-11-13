@@ -206,7 +206,15 @@ with tab_explain:
     conn.close()
 
     if ev_list:
-        event_options = [f"{r['event_id']} ({r['status']} • {r['observation_count']} obs • {r['duration_hours']:.1f}h)" for r in ev_list]
+        event_options = []
+        for r in ev_list:
+            dur_val = r["duration_hours"]
+            if dur_val is not None and not pd.isna(dur_val):
+                dur_str = f"{float(dur_val):.1f}h"
+            else:
+                dur_str = "ongoing"
+            obs_cnt = r["observation_count"] if r["observation_count"] is not None else 0
+            event_options.append(f"{r['event_id']} ({r['status']} • {obs_cnt} obs • {dur_str})")
         sel_str = st.selectbox("Select a Persistent Fire Event to Audit:", event_options)
         sel_ev_id = sel_str.split(" ")[0]
 
