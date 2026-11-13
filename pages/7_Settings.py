@@ -36,74 +36,169 @@ st.markdown(section_header("🔑", "NASA FIRMS API KEY"), unsafe_allow_html=True
 
 if key_status["configured"] and not demo_mode:
     st.markdown(f"""
-    <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">
-      <span style="font-size:1.2rem;">✅</span>
-      <div>
-        <div style="font-family:'Orbitron',sans-serif;font-size:0.62rem;font-weight:700;
-                    letter-spacing:2px;color:rgba(34,197,94,0.9);margin-bottom:4px;">API KEY CONFIGURED</div>
-        <code style="font-size:0.78rem;color: #ffffff;">{key_status['masked']}</code>
+    <div style="background:rgba(34,197,94,0.06);border:1px solid rgba(34,197,94,0.3);border-radius:14px;padding:22px 24px;margin-bottom:20px;">
+      <div style="display:flex;align-items:center;gap:14px;">
+        <span style="font-size:2rem;">✅</span>
+        <div>
+          <div style="font-family:'Orbitron',sans-serif;font-size:0.8rem;font-weight:700;letter-spacing:2px;color:#22c55e;">
+            NASA FIRMS API KEY CONFIGURED & ACTIVE
+          </div>
+          <div style="font-size:0.88rem;color:#ffffff;margin-top:6px;">
+            Current Key: <code style="background:rgba(255,255,255,0.1);padding:3px 8px;border-radius:4px;color:#60a5fa;font-weight:600;">{key_status['masked']}</code>
+            &nbsp;•&nbsp; Authenticated with NASA EOSDIS FIRMS
+          </div>
+          <div style="font-size:0.75rem;color:rgba(255,255,255,0.6);margin-top:6px;">
+            Your key is active and ready for live satellite data ingestion. You do not need to re-enter it.
+          </div>
+        </div>
       </div>
     </div>
     """, unsafe_allow_html=True)
+
+    with st.expander("🔄 Change / Replace Configured API Key"):
+        new_key = st.text_input(
+            "New NASA FIRMS API Key",
+            type="password",
+            placeholder="Paste new NASA FIRMS API key to replace current key…",
+            key="replace_key_input",
+        )
+        k1, k2, k3 = st.columns(3)
+        with k1:
+            if st.button("🔍  Validate Key", key="btn_val_existing", use_container_width=True):
+                if new_key.strip():
+                    with st.spinner("Validating…"):
+                        valid, msg = validate_api_key(new_key.strip())
+                    st.success(f"✓ {msg}") if valid else st.error(f"✗ {msg}")
+                else:
+                    st.warning("Enter a key first.")
+        with k2:
+            if st.button("💾  Save & Apply Key", key="btn_save_existing", use_container_width=True):
+                if new_key.strip():
+                    with st.spinner("Validating and saving…"):
+                        valid, msg = validate_api_key(new_key.strip())
+                    if valid:
+                        save_api_key(new_key.strip())
+                        st.success(f"✓ Saved: `{mask_key(new_key.strip())}`")
+                        st.rerun()
+                    else:
+                        st.error(f"✗ {msg}")
+                else:
+                    st.warning("Enter a key first.")
+        with k3:
+            if st.button("🎯  Switch to Demo Mode", key="btn_demo_existing", use_container_width=True):
+                save_api_key("DEMO_MODE")
+                st.success("Demo mode activated.")
+                st.rerun()
+
 elif demo_mode:
     st.markdown("""
-    <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">
-      <span style="font-size:1.2rem;">🎯</span>
-      <div>
-        <div style="font-family:'Orbitron',sans-serif;font-size:0.62rem;font-weight:700;
-                    letter-spacing:2px;color:rgba(59,130,246,0.9);margin-bottom:4px;">DEMO MODE ACTIVE</div>
-        <span style="font-size:0.78rem;color: #ffffff;">Using synthetic data. Configure a real key below.</span>
+    <div style="background:rgba(59,130,246,0.06);border:1px solid rgba(59,130,246,0.3);border-radius:14px;padding:22px 24px;margin-bottom:20px;">
+      <div style="display:flex;align-items:center;gap:14px;">
+        <span style="font-size:2rem;">🎯</span>
+        <div>
+          <div style="font-family:'Orbitron',sans-serif;font-size:0.8rem;font-weight:700;letter-spacing:2px;color:#60a5fa;">
+            DEMO MODE ACTIVE (PRELOADED BENCHMARK DATA)
+          </div>
+          <div style="font-size:0.85rem;color:rgba(255,255,255,0.85);margin-top:6px;">
+            The platform is running with preloaded 2000–2026 satellite records and climatological baselines.
+          </div>
+          <div style="font-size:0.75rem;color:rgba(255,255,255,0.6);margin-top:6px;">
+            To connect live real-time NASA FIRMS observations worldwide, enter your free API key below.
+          </div>
+        </div>
       </div>
     </div>
     """, unsafe_allow_html=True)
+
+    new_key = st.text_input(
+        "NASA FIRMS API Key",
+        type="password",
+        placeholder="Paste your NASA FIRMS API key to switch to live satellite stream…",
+        label_visibility="collapsed",
+    )
+    k1, k2 = st.columns(2)
+    with k1:
+        if st.button("🔍  Validate Key", key="btn_val_demo", use_container_width=True):
+            if new_key.strip():
+                with st.spinner("Validating…"):
+                    valid, msg = validate_api_key(new_key.strip())
+                st.success(f"✓ {msg}") if valid else st.error(f"✗ {msg}")
+            else:
+                st.warning("Enter a key first.")
+    with k2:
+        if st.button("💾  Save & Connect Live Satellite Feed", key="btn_save_demo", use_container_width=True):
+            if new_key.strip():
+                with st.spinner("Validating and saving…"):
+                    valid, msg = validate_api_key(new_key.strip())
+                if valid:
+                    save_api_key(new_key.strip())
+                    st.success(f"✓ Saved: `{mask_key(new_key.strip())}`")
+                    st.rerun()
+                else:
+                    st.error(f"✗ {msg}")
+            else:
+                st.warning("Enter a key first.")
+
 else:
     st.markdown("""
-    <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">
-      <span style="font-size:1.2rem;">⚠️</span>
-      <div style="font-family:'Orbitron',sans-serif;font-size:0.62rem;font-weight:700;
-                  letter-spacing:2px;color:rgba(245,158,11,0.9);">NO API KEY CONFIGURED</div>
+    <div style="background:rgba(245,158,11,0.06);border:1px solid rgba(245,158,11,0.3);border-radius:14px;padding:22px 24px;margin-bottom:20px;">
+      <div style="display:flex;align-items:center;gap:14px;">
+        <span style="font-size:2rem;">⚠️</span>
+        <div>
+          <div style="font-family:'Orbitron',sans-serif;font-size:0.8rem;font-weight:700;letter-spacing:2px;color:#f59e0b;">
+            NO API KEY CONFIGURED
+          </div>
+          <div style="font-size:0.85rem;color:rgba(255,255,255,0.85);margin-top:6px;">
+            Enter your free NASA FIRMS MAP_KEY below or launch in Demo Mode for instant access.
+          </div>
+        </div>
+      </div>
     </div>
     """, unsafe_allow_html=True)
 
-new_key = st.text_input(
-    "NASA FIRMS API Key",
-    type="password",
-    placeholder="Enter new NASA FIRMS API key…",
-    label_visibility="collapsed",
-)
-k1, k2, k3 = st.columns(3)
-with k1:
-    if st.button("🔍  Validate Key", use_container_width=True):
-        if new_key.strip():
-            with st.spinner("Validating…"):
-                valid, msg = validate_api_key(new_key.strip())
-            st.success(f"✓ {msg}") if valid else st.error(f"✗ {msg}")
-        else:
-            st.warning("Enter a key first.")
-with k2:
-    if st.button("💾  Save Key", use_container_width=True):
-        if new_key.strip():
-            with st.spinner("Validating and saving…"):
-                valid, msg = validate_api_key(new_key.strip())
-            if valid:
-                save_api_key(new_key.strip())
-                st.success(f"✓ Saved: `{mask_key(new_key.strip())}`")
-                st.rerun()
+    new_key = st.text_input(
+        "NASA FIRMS API Key",
+        type="password",
+        placeholder="Enter your NASA FIRMS API key…",
+        label_visibility="collapsed",
+    )
+    k1, k2, k3 = st.columns(3)
+    with k1:
+        if st.button("🔍  Validate Key", key="btn_val_none", use_container_width=True):
+            if new_key.strip():
+                with st.spinner("Validating…"):
+                    valid, msg = validate_api_key(new_key.strip())
+                st.success(f"✓ {msg}") if valid else st.error(f"✗ {msg}")
             else:
-                st.error(f"✗ {msg}")
-        else:
-            st.warning("Enter a key first.")
-with k3:
-    if st.button("🎯  Demo Mode", use_container_width=True):
-        save_api_key("DEMO_MODE")
-        st.success("Demo mode activated.")
-        st.rerun()
+                st.warning("Enter a key first.")
+    with k2:
+        if st.button("💾  Save Key", key="btn_save_none", use_container_width=True):
+            if new_key.strip():
+                with st.spinner("Validating and saving…"):
+                    valid, msg = validate_api_key(new_key.strip())
+                if valid:
+                    save_api_key(new_key.strip())
+                    st.success(f"✓ Saved: `{mask_key(new_key.strip())}`")
+                    st.rerun()
+                else:
+                    st.error(f"✗ {msg}")
+            else:
+                st.warning("Enter a key first.")
+    with k3:
+        if st.button("🎯  Demo Mode", key="btn_demo_none", use_container_width=True):
+            save_api_key("DEMO_MODE")
+            st.success("Demo mode activated.")
+            st.rerun()
 
 st.markdown("""
-<div style="margin-top:14px;padding:12px 16px;background:rgba(255,255,255,0.03);border-radius:10px;border:1px solid rgba(255,255,255,0.06);">
-  <p style="margin:0;color: #ffffff;font-size:0.72rem;line-height:1.9;font-family:'JetBrains Mono',monospace;">
-    Get a free API key at <a href="https://firms.modaps.eosdis.nasa.gov/api/area/" target="_blank">firms.modaps.eosdis.nasa.gov</a><br/>
-    Key is stored in local <code>.env</code> file · Never committed to git · Never sent to browser
+<div style="margin-top:16px;padding:16px 20px;background:rgba(255,255,255,0.03);border-radius:12px;border:1px solid rgba(255,255,255,0.08);">
+  <div style="font-size:0.8rem;color:#60a5fa;font-family:'Orbitron',sans-serif;font-weight:700;margin-bottom:6px;">
+    NASA FIRMS & STREAMLIT CLOUD PERSISTENCE
+  </div>
+  <p style="margin:0;color:rgba(255,255,255,0.75);font-size:0.75rem;line-height:1.8;">
+    • Get a free API key at <a href="https://firms.modaps.eosdis.nasa.gov/api/area/" target="_blank" style="color:#60a5fa;">firms.modaps.eosdis.nasa.gov</a><br/>
+    • <b>Streamlit Cloud Users:</b> To ensure your key persists permanently across cloud container rebuilds, go to your app's <b>Settings ➔ Secrets</b> and add:<br/>
+    <code style="background:rgba(0,0,0,0.4);padding:2px 8px;border-radius:4px;color:#22c55e;">NASA_API_KEY = "your_key"</code>
   </p>
 </div>
 """, unsafe_allow_html=True)

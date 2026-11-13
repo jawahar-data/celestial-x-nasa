@@ -1182,10 +1182,12 @@ def render_nav(active: str = "OVERVIEW") -> None:
       </div>
 
       <!-- Row 2: Nav links -->
-      <div style="display:flex;align-items:center;gap:2px;padding:5px 0 6px;
-                  border-top:1px solid rgba(255,255,255,0.05);overflow-x:auto;
-                  scrollbar-width:none;">
+      <div style="display:flex;align-items:center;position:relative;border-top:1px solid rgba(255,255,255,0.05);gap:8px;padding:4px 0;">
+        <button onclick="const el=document.getElementById('cx-nav-track');if(el)el.scrollBy({{left:-280,behavior:'smooth'}});" title="Scroll left" style="display:flex;align-items:center;justify-content:center;flex-shrink:0;width:24px;height:24px;padding:0;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:50%;color:rgba(255,255,255,0.7);font-size:0.75rem;cursor:pointer;">❮</button>
+        <div id="cx-nav-track" style="display:flex;align-items:center;gap:3px;overflow-x:auto;scroll-behavior:smooth;flex:1;scrollbar-width:thin;scrollbar-color:rgba(96,165,250,0.35) transparent;">
         {nav_links}
+        </div>
+        <button onclick="const el=document.getElementById('cx-nav-track');if(el)el.scrollBy({{left:280,behavior:'smooth'}});" title="Scroll right to see all 14 pages" style="display:flex;align-items:center;gap:6px;flex-shrink:0;padding:4px 12px;background:rgba(96,165,250,0.12);border:1px solid rgba(96,165,250,0.35);border-radius:20px;color:#60a5fa;font-family:'Orbitron',sans-serif;font-size:0.62rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;white-space:nowrap;user-select:none;box-shadow:0 0 10px rgba(96,165,250,0.2);"><span>SCROLL</span><span style="font-size:0.85rem;display:inline-block;">➔</span></button>
       </div>
 
     </div>
