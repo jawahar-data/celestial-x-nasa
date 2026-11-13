@@ -77,7 +77,12 @@ def load_api_key() -> str | None:
     except Exception:
         pass  # Not running inside Streamlit, or secrets not configured
 
-    # ── 2. Fall back to local .env file ───────────────────────────────────────
+    # ── 2. Environment variables ─────────────────────────────────────────────
+    env_var = os.environ.get("NASA_API_KEY")
+    if env_var and env_var.strip() and env_var.strip() != "your_nasa_firms_api_key_here":
+        return env_var.strip()
+
+    # ── 3. Fall back to local .env file ───────────────────────────────────────
     env_path = ENV_FILE
     if not env_path.exists():
         return None
