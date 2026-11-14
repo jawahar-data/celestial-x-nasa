@@ -27,8 +27,36 @@ from .database import get_connection, update_data_source_metadata
 
 # Meteomatics configuration
 METEOMATICS_BASE_URL = "https://api.meteomatics.com"
-METEOMATICS_USER = os.environ.get("METEOMATICS_USERNAME") or os.environ.get("METEOMATICS_USER")
-METEOMATICS_PASSWORD = os.environ.get("METEOMATICS_PASSWORD") or os.environ.get("METEOMATICS_PWD")
+
+def _get_meteomatics_credentials() -> Tuple[Optional[str], Optional[str]]:
+    """Retrieve Meteomatics credentials from Streamlit Secrets, os.environ, or .env file."""
+    try:
+        if "METEOMATICS_USERNAME" in st.secrets and "METEOMATICS_PASSWORD" in st.secrets:
+            return str(st.secrets["METEOMATICS_USERNAME"]).strip(), str(st.secrets["METEOMATICS_PASSWORD"]).strip()
+    except Exception:
+        pass
+
+    user = os.environ.get("METEOMATICS_USERNAME") or os.environ.get("METEOMATICS_USER")
+    pwd = os.environ.get("METEOMATICS_PASSWORD") or os.environ.get("METEOMATICS_PWD")
+    if user and pwd:
+        return user.strip(), pwd.strip()
+
+    try:
+        from pathlib import Path
+        env_file = Path(__file__).parent.parent / ".env"
+        if env_file.exists():
+            for line in env_file.read_text().splitlines():
+                line = line.strip()
+                if line.startswith("METEOMATICS_USERNAME="):
+                    user = line.split("=", 1)[1].strip()
+                elif line.startswith("METEOMATICS_PASSWORD="):
+                    pwd = line.split("=", 1)[1].strip()
+            if user and pwd:
+                return user, pwd
+    except Exception:
+        pass
+
+    return None, None
 
 # Open-Meteo configuration (reliable open alternative)
 OPEN_METEO_BASE_URL = "https://api.open-meteo.com/v1/forecast"
@@ -85,7 +113,8 @@ def fetch_weather_meteomatics(lat: float, lon: float, dt_iso: Optional[str] = No
     Query Meteomatics API for atmospheric parameters at (lat, lon).
     Requires METEOMATICS_USERNAME and METEOMATICS_PASSWORD.
     """
-    if not METEOMATICS_USER or not METEOMATICS_PASSWORD:
+    user, pwd = _get_meteomatics_credentials()
+    if not user or not pwd:
         return None
 
     if dt_iso:
@@ -101,7 +130,7 @@ def fetch_weather_meteomatics(lat: float, lon: float, dt_iso: Optional[str] = No
     url = f"{METEOMATICS_BASE_URL}/{valid_time}/{parameters}/{round(lat, 4)},{round(lon, 4)}/json"
 
     try:
-        resp = requests.get(url, auth=(METEOMATICS_USER, METEOMATICS_PASSWORD), timeout=8)
+        resp = requests.get(url, auth=(user, pwd), timeout=8)
         if resp.status_code == 200:
             data = resp.json()
             param_map = {}
@@ -325,3 +354,4 @@ def get_event_weather(event_id: str, conn=None) -> Optional[Dict[str, Any]]:
     finally:
         if own_conn:
             conn.close()
+
