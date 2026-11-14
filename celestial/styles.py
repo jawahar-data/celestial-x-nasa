@@ -34,8 +34,73 @@ _ORB_EXPAND_JS = """
       '{background:transparent!important;}'+
       '[data-testid="stHeader"],[data-testid="stDecoration"],[data-testid="stToolbar"],'+
       'header,[data-testid="stStatusWidget"],.stDeployButton,#MainMenu'+
-      '{display:none!important;opacity:0!important;height:0!important;}';
+      '{display:none!important;opacity:0!important;height:0!important;}'+
+      '#cx-nav-track{min-width:0!important;flex:1 1 auto!important;max-width:calc(100vw - 130px)!important;overflow-x:auto!important;scroll-behavior:smooth!important;-webkit-overflow-scrolling:touch!important;}';
     window.parent.document.head.appendChild(s);
+
+    function bindNavButtons() {
+      try {
+        var pdoc = (window.parent && window.parent.document) ? window.parent.document : document;
+        var track = pdoc.getElementById('cx-nav-track');
+        var btnL = pdoc.getElementById('cx-nav-btn-left');
+        var btnR = pdoc.getElementById('cx-nav-btn-right');
+        if (track && btnL && !btnL._boundNav) {
+          btnL._boundNav = true;
+          var onLeft = function(ev) {
+            if (ev) { ev.preventDefault(); ev.stopPropagation(); }
+            track.scrollLeft -= 320;
+            if (track.scrollBy) {
+              try { track.scrollBy({left: -320, behavior: 'smooth'}); } catch(e){}
+            }
+          };
+          btnL.onclick = onLeft;
+          btnL.addEventListener('click', onLeft);
+          btnL.addEventListener('pointerdown', onLeft);
+        }
+        if (track && btnR && !btnR._boundNav) {
+          btnR._boundNav = true;
+          var onRight = function(ev) {
+            if (ev) { ev.preventDefault(); ev.stopPropagation(); }
+            track.scrollLeft += 320;
+            if (track.scrollBy) {
+              try { track.scrollBy({left: 320, behavior: 'smooth'}); } catch(e){}
+            }
+          };
+          btnR.onclick = onRight;
+          btnR.addEventListener('click', onRight);
+          btnR.addEventListener('pointerdown', onRight);
+        }
+        if (track && !track._boundWheel) {
+          track._boundWheel = true;
+          track.addEventListener('wheel', function(ev) {
+            if (ev.deltaY !== 0) {
+              ev.preventDefault();
+              track.scrollLeft += ev.deltaY * 1.5;
+            }
+          }, {passive: false});
+        }
+        if (track && !track._boundDrag) {
+          track._boundDrag = true;
+          var isDown = false, startX = 0, initialScroll = 0;
+          track.addEventListener('mousedown', function(e) {
+            isDown = true;
+            startX = e.pageX - track.offsetLeft;
+            initialScroll = track.scrollLeft;
+          });
+          track.addEventListener('mouseleave', function() { isDown = false; });
+          track.addEventListener('mouseup', function() { isDown = false; });
+          track.addEventListener('mousemove', function(e) {
+            if (!isDown) return;
+            e.preventDefault();
+            var x = e.pageX - track.offsetLeft;
+            var walk = (x - startX) * 1.5;
+            track.scrollLeft = initialScroll - walk;
+          });
+        }
+      } catch(e) {}
+    }
+    bindNavButtons();
+    setInterval(bindNavButtons, 300);
   }catch(e){}
 })();
 """
@@ -1019,6 +1084,37 @@ section[data-testid="stSidebar"],
 [data-testid="stTable"] th {
   white-space: nowrap !important;
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   NAV TRACK SCROLLBAR & OVERFLOW
+════════════════════════════════════════════════════════════════ */
+#cx-nav-track {
+  display: flex !important;
+  align-items: center !important;
+  gap: 3px !important;
+  overflow-x: auto !important;
+  scroll-behavior: smooth !important;
+  -webkit-overflow-scrolling: touch !important;
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+  max-width: calc(100vw - 130px) !important;
+  scrollbar-width: thin !important;
+  scrollbar-color: rgba(96, 165, 250, 0.25) transparent !important;
+}
+#cx-nav-track::-webkit-scrollbar {
+  height: 2px !important;
+}
+#cx-nav-track::-webkit-scrollbar-track {
+  background: transparent !important;
+}
+#cx-nav-track::-webkit-scrollbar-thumb {
+  background: rgba(96, 165, 250, 0.3) !important;
+  border-radius: 2px !important;
+}
+#cx-nav-btn-left, #cx-nav-btn-right {
+  user-select: none !important;
+  touch-action: manipulation !important;
+}
 """
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -1133,12 +1229,12 @@ def render_nav(active: str = "OVERVIEW") -> None:
             # Active: brighter text + a bottom border underline (no box/background)
             return base + (
                 "color:#ffffff;"
-                "border-bottom:2px solid rgba(255,255,255,0.7) !important;"
+                "border-bottom:1.5px solid rgba(255,255,255,0.7) !important;"
                 "border-radius:0;"
                 "padding-bottom:3px;"
             )
         # Inactive: dimmed text, invisible border placeholder so spacing stays consistent
-        return base + "color:rgba(255,255,255,0.55);border-bottom:2px solid transparent;"
+        return base + "color:rgba(255,255,255,0.55);border-bottom:1.5px solid transparent;"
 
     nav_links = "".join(
         f'<a href="{url}" target="_self" style="{link_style(label)}">{icon}&nbsp;{label}</a>'
@@ -1183,11 +1279,11 @@ def render_nav(active: str = "OVERVIEW") -> None:
 
       <!-- Row 2: Nav links -->
       <div style="display:flex;align-items:center;position:relative;border-top:0.5px solid rgba(255,255,255,0.04);gap:8px;padding:4px 0;">
-        <button onclick="const el=document.getElementById('cx-nav-track');if(el)el.scrollBy({{left:-280,behavior:'smooth'}});" title="Scroll left" style="display:flex;align-items:center;justify-content:center;flex-shrink:0;width:24px;height:24px;padding:0;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:50%;color:rgba(255,255,255,0.7);font-size:0.75rem;cursor:pointer;">❮</button>
-        <div id="cx-nav-track" style="display:flex;align-items:center;gap:3px;overflow-x:auto;scroll-behavior:smooth;flex:1;scrollbar-width:thin;scrollbar-color:rgba(96,165,250,0.2) transparent;">
+        <button id="cx-nav-btn-left" type="button" onclick="var el=document.getElementById('cx-nav-track');if(el){{el.scrollLeft-=320;if(el.scrollBy)el.scrollBy({{left:-320,behavior:'smooth'}});}} return false;" title="Scroll left" style="display:flex;align-items:center;justify-content:center;flex-shrink:0;width:24px;height:24px;padding:0;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:50%;color:rgba(255,255,255,0.8);font-size:0.75rem;cursor:pointer;user-select:none;transition:all 0.2s ease;">❮</button>
+        <div id="cx-nav-track" style="display:flex;align-items:center;gap:3px;overflow-x:auto;scroll-behavior:smooth;flex:1 1 auto;min-width:0;max-width:calc(100vw - 130px);scrollbar-width:thin;scrollbar-color:rgba(96,165,250,0.2) transparent;">
         {nav_links}
         </div>
-        <button onclick="const el=document.getElementById('cx-nav-track');if(el)el.scrollBy({{left:280,behavior:'smooth'}});" title="Scroll right" style="display:flex;align-items:center;justify-content:center;flex-shrink:0;width:24px;height:24px;padding:0;background:rgba(96,165,250,0.12);border:1px solid rgba(96,165,250,0.35);border-radius:50%;color:#60a5fa;font-size:0.75rem;cursor:pointer;transition:all 0.2s ease;box-shadow:0 0 8px rgba(96,165,250,0.2);">❯</button>
+        <button id="cx-nav-btn-right" type="button" onclick="var el=document.getElementById('cx-nav-track');if(el){{el.scrollLeft+=320;if(el.scrollBy)el.scrollBy({{left:320,behavior:'smooth'}});}} return false;" title="Scroll right" style="display:flex;align-items:center;justify-content:center;flex-shrink:0;width:24px;height:24px;padding:0;background:rgba(96,165,250,0.12);border:1px solid rgba(96,165,250,0.35);border-radius:50%;color:#60a5fa;font-size:0.75rem;cursor:pointer;transition:all 0.2s ease;box-shadow:0 0 8px rgba(96,165,250,0.2);user-select:none;">❯</button>
       </div>
 
     </div>

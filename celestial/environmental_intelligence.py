@@ -324,3 +324,4 @@ def get_event_environmental_context(event_id: str, conn=None) -> Optional[Dict[s
     finally:
         if own_conn:
             conn.close()
+

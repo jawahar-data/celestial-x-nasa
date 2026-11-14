@@ -192,66 +192,143 @@ with _col_msg:
         unsafe_allow_html=True
     )
 
-# ── First-Time Instructions & Operational Guide ──────────────────────────────
-guide_expanded = not st.session_state.get("_guide_dismissed", False)
-with st.expander("📖 FIRST-TIME OPERATIONAL GUIDE & SYSTEM INSTRUCTIONS (Click to collapse / expand)", expanded=guide_expanded):
-    st.markdown("""
-    <div style="font-size:0.85rem;color:rgba(255,255,255,0.85);margin-bottom:14px;line-height:1.7;">
-      Welcome to <b>CELESTIAL X</b>! Here is a quick walkthrough on how to work with each module across the platform:
+# ── Operational Guide & System Instructions ──────────────────────────────────
+st.markdown(section_header("🧭", "HOW TO USE CELESTIAL X · STEP-BY-STEP OPERATIONAL GUIDE"), unsafe_allow_html=True)
+
+st.markdown("""
+<div style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);border-radius:16px;padding:22px 24px 18px 24px;margin-bottom:28px;backdrop-filter:blur(20px);box-shadow:0 12px 40px rgba(0,0,0,0.5);">
+  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:18px;">
+    <div>
+      <div style="font-family:'Orbitron',sans-serif;font-size:1.05rem;font-weight:800;color:#ffffff;letter-spacing:1.5px;">
+        SCIENTIFIC &amp; OPERATIONAL WORKFLOW ROADMAP
+      </div>
+      <div style="font-family:'Inter',sans-serif;font-size:0.8rem;color:rgba(255,255,255,0.6);margin-top:3px;">
+        Follow these 5 core stages to evaluate real-time satellite fire intelligence, 25-year multi-sensor baselines, and AI copilot capabilities:
+      </div>
     </div>
-    """, unsafe_allow_html=True)
-    
-    cg1, cg2, cg3, cg4 = st.columns(4)
-    with cg1:
-        st.markdown("""
-        <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:14px;height:100%;">
-          <div style="color:#60a5fa;font-family:'Orbitron',sans-serif;font-size:0.78rem;font-weight:700;margin-bottom:6px;">
-            1. BURNING CALENDARS
-          </div>
-          <p style="font-size:0.75rem;color:rgba(255,255,255,0.7);line-height:1.6;margin:0;">
-            Open <b>📅 Burning Calendar</b> to view the 2000–2026 harmonized matrix, FRP intensity, and anomaly % vs 20-year medians. Use <b>🕰️ Time Machine</b> to drag the year slider from 2001 to present.
-          </p>
+    <div style="display:flex;align-items:center;gap:6px;background:rgba(96,165,250,0.08);border:1px solid rgba(96,165,250,0.25);border-radius:20px;padding:5px 14px;font-family:'JetBrains Mono',monospace;font-size:0.75rem;color:#60a5fa;">
+      <span>💡 Scroll Top Nav with ❮ ❯ or Mouse Wheel</span>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));gap:14px;">
+    <!-- Step 1 -->
+    <div style="background:rgba(255,255,255,0.02);border:1px solid rgba(239,68,68,0.25);border-radius:12px;padding:16px;display:flex;flex-direction:column;justify-content:between;position:relative;overflow:hidden;">
+      <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg, #ef4444, transparent);"></div>
+      <div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+          <span style="font-family:'Orbitron',sans-serif;font-size:1.1rem;font-weight:900;color:#ef4444;">01</span>
+          <span style="font-size:1.1rem;">🗺️</span>
         </div>
-        """, unsafe_allow_html=True)
-    with cg2:
-        st.markdown("""
-        <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:14px;height:100%;">
-          <div style="color:#f59e0b;font-family:'Orbitron',sans-serif;font-size:0.78rem;font-weight:700;margin-bottom:6px;">
-            2. RUN FIRE-FUSE
-          </div>
-          <p style="font-size:0.75rem;color:rgba(255,255,255,0.7);line-height:1.6;margin:0;">
-            Navigate to <b>📥 Data</b> and click <b>"⚡ Launch FIRE-FUSE Pipeline"</b>. It ingests FIRMS data, maps confidences to [0,1], and clusters multi-day persistent fires via H3 hexagonal grids.
-          </p>
+        <div style="font-family:'Orbitron',sans-serif;font-size:0.82rem;font-weight:700;color:#ffffff;letter-spacing:1px;margin-bottom:6px;">
+          LIVE FIRE MONITORING
         </div>
-        """, unsafe_allow_html=True)
-    with cg3:
-        st.markdown("""
-        <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:14px;height:100%;">
-          <div style="color:#10b981;font-family:'Orbitron',sans-serif;font-size:0.78rem;font-weight:700;margin-bottom:6px;">
-            3. MONITOR RESERVES
-          </div>
-          <p style="font-size:0.75rem;color:rgba(255,255,255,0.7);line-height:1.6;margin:0;">
-            Visit <b>🌴 Tamil Nadu</b> for sub-regional tracking of Mudumalai & Anamalai tiger reserves and the tri-state corridor. Explore 3D active satellite passes on <b>🗺️ Live Map</b>.
-          </p>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:0.7rem;color:#60a5fa;margin-bottom:8px;">
+          Live Map · Fire Events
         </div>
-        """, unsafe_allow_html=True)
-    with cg4:
-        st.markdown("""
-        <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:14px;height:100%;">
-          <div style="color:#ec4899;font-family:'Orbitron',sans-serif;font-size:0.78rem;font-weight:700;margin-bottom:6px;">
-            4. AUDIT & COPILOT
-          </div>
-          <p style="font-size:0.75rem;color:rgba(255,255,255,0.7);line-height:1.6;margin:0;">
-            Inspect sensor sensitivity biases (3.82x ratio) in <b>🔬 Calibration Lab</b> and KaTeX formulas in <b>📐 Methodology</b>. Ask natural language questions in <b>🤖 Copilot</b>.
-          </p>
+        <p style="font-size:0.76rem;color:rgba(255,255,255,0.72);line-height:1.6;margin:0;">
+          Ingest active hotspots from NASA MODIS (1 km) &amp; VIIRS (375 m). Inspect 3D globe perimeters, H3 spatial clusters, and Rothermel downwind spread cones.
+        </p>
+      </div>
+      <div style="margin-top:14px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.06);font-size:0.72rem;color:rgba(255,255,255,0.5);">
+        🎯 <b>What to look for:</b> Multi-sensor cluster reconciliation &amp; FRP intensity.
+      </div>
+    </div>
+
+    <!-- Step 2 -->
+    <div style="background:rgba(255,255,255,0.02);border:1px solid rgba(245,158,11,0.25);border-radius:12px;padding:16px;display:flex;flex-direction:column;justify-content:between;position:relative;overflow:hidden;">
+      <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg, #f59e0b, transparent);"></div>
+      <div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+          <span style="font-family:'Orbitron',sans-serif;font-size:1.1rem;font-weight:900;color:#f59e0b;">02</span>
+          <span style="font-size:1.1rem;">📅</span>
         </div>
-        """, unsafe_allow_html=True)
-    
-    st.markdown('<div style="height:8px;"></div>', unsafe_allow_html=True)
-    if guide_expanded:
-        if st.button("✓ Got it! Dismiss Guide", key="dismiss_guide_btn"):
-            st.session_state["_guide_dismissed"] = True
-            st.rerun()
+        <div style="font-family:'Orbitron',sans-serif;font-size:0.82rem;font-weight:700;color:#ffffff;letter-spacing:1px;margin-bottom:6px;">
+          BURNING CALENDARS
+        </div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:0.7rem;color:#f59e0b;margin-bottom:8px;">
+          Burning Calendar · Time Machine
+        </div>
+        <p style="font-size:0.76rem;color:rgba(255,255,255,0.72);line-height:1.6;margin:0;">
+          Examine 25+ years (2000–2026) of fire history. Drag the <b>Time Machine</b> slider to compare yearly seasonal peaks, FRP energy anomalies, and 20-year medians.
+        </p>
+      </div>
+      <div style="margin-top:14px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.06);font-size:0.72rem;color:rgba(255,255,255,0.5);">
+        🎯 <b>What to look for:</b> Seasonal departure percentiles across multi-decades.
+      </div>
+    </div>
+
+    <!-- Step 3 -->
+    <div style="background:rgba(255,255,255,0.02);border:1px solid rgba(16,185,129,0.25);border-radius:12px;padding:16px;display:flex;flex-direction:column;justify-content:between;position:relative;overflow:hidden;">
+      <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg, #10b981, transparent);"></div>
+      <div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+          <span style="font-family:'Orbitron',sans-serif;font-size:1.1rem;font-weight:900;color:#10b981;">03</span>
+          <span style="font-size:1.1rem;">🌴</span>
+        </div>
+        <div style="font-family:'Orbitron',sans-serif;font-size:0.82rem;font-weight:700;color:#ffffff;letter-spacing:1px;margin-bottom:6px;">
+          RESERVE CONSERVATION
+        </div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:0.7rem;color:#10b981;margin-bottom:8px;">
+          Tamil Nadu · Risk Forecast
+        </div>
+        <p style="font-size:0.76rem;color:rgba(255,255,255,0.72);line-height:1.6;margin:0;">
+          Track high-biodiversity tiger reserves (Mudumalai, Anamalai, Sathyamangalam). Integrates live Meteomatics wind/weather with Fosberg fire weather indices.
+        </p>
+      </div>
+      <div style="margin-top:14px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.06);font-size:0.72rem;color:rgba(255,255,255,0.5);">
+        🎯 <b>What to look for:</b> Weather-coupled spread vectors near wildlife zones.
+      </div>
+    </div>
+
+    <!-- Step 4 -->
+    <div style="background:rgba(255,255,255,0.02);border:1px solid rgba(139,92,246,0.25);border-radius:12px;padding:16px;display:flex;flex-direction:column;justify-content:between;position:relative;overflow:hidden;">
+      <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg, #8b5cf6, transparent);"></div>
+      <div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+          <span style="font-family:'Orbitron',sans-serif;font-size:1.1rem;font-weight:900;color:#8b5cf6;">04</span>
+          <span style="font-size:1.1rem;">🔬</span>
+        </div>
+        <div style="font-family:'Orbitron',sans-serif;font-size:0.82rem;font-weight:700;color:#ffffff;letter-spacing:1px;margin-bottom:6px;">
+          SENSOR CALIBRATION LAB
+        </div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:0.7rem;color:#8b5cf6;margin-bottom:8px;">
+          Calibration Lab · Methodology
+        </div>
+        <p style="font-size:0.76rem;color:rgba(255,255,255,0.72);line-height:1.6;margin:0;">
+          Audit the 3.82x VIIRS/MODIS detection jump. Learn how cross-sensor normalization prevents false climate trend inflation. Review open KaTeX equations.
+        </p>
+      </div>
+      <div style="margin-top:14px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.06);font-size:0.72rem;color:rgba(255,255,255,0.5);">
+        🎯 <b>What to look for:</b> Transparent regression coefficients &amp; 5-pillar formulas.
+      </div>
+    </div>
+
+    <!-- Step 5 -->
+    <div style="background:rgba(255,255,255,0.02);border:1px solid rgba(236,72,153,0.25);border-radius:12px;padding:16px;display:flex;flex-direction:column;justify-content:between;position:relative;overflow:hidden;">
+      <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg, #ec4899, transparent);"></div>
+      <div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+          <span style="font-family:'Orbitron',sans-serif;font-size:1.1rem;font-weight:900;color:#ec4899;">05</span>
+          <span style="font-size:1.1rem;">🤖</span>
+        </div>
+        <div style="font-family:'Orbitron',sans-serif;font-size:0.82rem;font-weight:700;color:#ffffff;letter-spacing:1px;margin-bottom:6px;">
+          AI COPILOT &amp; REPORTS
+        </div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:0.7rem;color:#ec4899;margin-bottom:8px;">
+          Copilot · Reports Dossiers
+        </div>
+        <p style="font-size:0.76rem;color:rgba(255,255,255,0.72);line-height:1.6;margin:0;">
+          Ask questions in natural language. Every response shows verifiable SQL provenance with zero hallucination. Review and download multi-page PDF incident dossiers.
+        </p>
+      </div>
+      <div style="margin-top:14px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.06);font-size:0.72rem;color:rgba(255,255,255,0.5);">
+        🎯 <b>What to look for:</b> Verified SQL transparency &amp; 1-click executive export.
+      </div>
+    </div>
+  </div>
+</div>
+""", unsafe_allow_html=True)
 
 # ── Live statistics ───────────────────────────────────────────────────────────
 stats = get_stats()
