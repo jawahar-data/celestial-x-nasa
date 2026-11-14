@@ -237,7 +237,6 @@ if selected_id:
                     "style": DECK_TOOLTIP,
                 },
             )
-            st.markdown('<div style="border-radius:16px;overflow:hidden;border:1px solid rgba(255,255,255,0.08);">', unsafe_allow_html=True)
             st.pydeck_chart(deck, use_container_width=True, height=480)
             st.markdown(
                 '<p style="font-size:0.78rem;color:rgba(255,255,255,0.55);margin-top:8px;text-align:center;">'

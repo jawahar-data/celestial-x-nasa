@@ -54,62 +54,56 @@ render_nav("OVERVIEW")
 
 # ── First-run API key setup screen ────────────────────────────────────────────
 if not key_status["configured"]:
-    st.markdown("""
-    <div style="max-width:760px;margin:50px auto 30px auto;text-align:center;animation:fadeUp 0.6s ease;">
-      <div style="font-size:3.5rem;margin-bottom:16px;filter:drop-shadow(0 0 32px rgba(100,180,255,0.8));animation:logoFloat 8s ease-in-out infinite;">🔭</div>
-      <div style="font-family:'Orbitron',sans-serif;font-size:2.2rem;font-weight:900;color:#ffffff;letter-spacing:5px;margin-bottom:6px;text-shadow:0 0 40px rgba(100,160,255,0.4);">CELESTIAL X</div>
-      <div style="font-family:'Inter',sans-serif;font-size:0.75rem;color:#60a5fa;letter-spacing:4px;text-transform:uppercase;margin-bottom:28px;">
-        NASA SPACE APPS CHALLENGE 2026 • SYSTEM ONBOARDING & SETUP
-      </div>
-
-      <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.1);border-radius:20px;padding:28px 36px;backdrop-filter:blur(40px);box-shadow:0 24px 80px rgba(0,0,0,0.7);text-align:left;margin-bottom:28px;">
-        <h3 style="font-family:'Orbitron',sans-serif;color:#fff;font-size:1.1rem;margin-bottom:12px;display:flex;align-items:center;gap:10px;">
-          <span>🚀</span> Quick-Start Instructions — How to Run & Work With CELESTIAL X
-        </h3>
-        <p style="color:rgba(255,255,255,0.85);font-size:0.86rem;line-height:1.8;margin-bottom:16px;">
-          CELESTIAL X reconciles over 20 years of NASA MODIS (1 km) and VIIRS (375 m) active fire observations into a harmonized burning activity calendar and persistent event intelligence platform.
-        </p>
-
-        <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:12px;margin:18px 0;">
-          <div style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:12px 14px;">
-            <b style="color:#60a5fa;font-size:0.8rem;">1. SELECT LAUNCH MODE</b>
-            <p style="font-size:0.75rem;color:rgba(255,255,255,0.65);margin-top:4px;line-height:1.5;">
-              Use <b>Demo Mode</b> for instant 1-click access with preloaded 2000–2026 data, or enter a free NASA FIRMS key for live stream.
-            </p>
-          </div>
-          <div style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:12px 14px;">
-            <b style="color:#f59e0b;font-size:0.8rem;">2. BURNING CALENDARS</b>
-            <p style="font-size:0.75rem;color:rgba(255,255,255,0.65);margin-top:4px;line-height:1.5;">
-              Navigate to <b>📅 Burning Calendar</b> & <b>🕰️ Time Machine</b> to analyze 20-year baselines, anomaly percentiles & FRP intensity.
-            </p>
-          </div>
-          <div style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:12px 14px;">
-            <b style="color:#10b981;font-size:0.8rem;">3. RUN FIRE-FUSE</b>
-            <p style="font-size:0.75rem;color:rgba(255,255,255,0.65);margin-top:4px;line-height:1.5;">
-              Open <b>📥 Data Pipeline</b> to ingest observations, harmonize confidences, and cluster multi-day persistent events via H3 grids.
-            </p>
-          </div>
-          <div style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:12px 14px;">
-            <b style="color:#ec4899;font-size:0.8rem;">4. COPILOT & AUDIT</b>
-            <p style="font-size:0.75rem;color:rgba(255,255,255,0.65);margin-top:4px;line-height:1.5;">
-              Ask natural language questions in <b>🤖 Copilot</b> and audit cross-sensor calibration (3.82x ratio) in <b>🔬 Calibration Lab</b>.
-            </p>
-          </div>
-        </div>
-
-        <div style="height:1px;background:rgba(255,255,255,0.08);margin:20px 0;"></div>
-
-        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
-          <span style="font-size:0.82rem;color:rgba(255,255,255,0.7);">
-            👉 <b>Recommended for evaluation:</b> Click <b>Demo Mode</b> to explore immediately with all datasets preloaded.
-          </span>
-          <span style="font-size:0.75rem;color:rgba(255,255,255,0.5);">
-            Free key at <a href='https://firms.modaps.eosdis.nasa.gov/api/area/' target='_blank' style='color:#60a5fa;'>firms.modaps.eosdis.nasa.gov</a>
-          </span>
-        </div>
-      </div>
-    </div>
-    """, unsafe_allow_html=True)
+    st.markdown("""<div style="max-width:760px;margin:50px auto 30px auto;text-align:center;animation:fadeUp 0.6s ease;">
+<div style="font-size:3.5rem;margin-bottom:16px;filter:drop-shadow(0 0 32px rgba(100,180,255,0.8));animation:logoFloat 8s ease-in-out infinite;">🔭</div>
+<div style="font-family:'Orbitron',sans-serif;font-size:2.2rem;font-weight:900;color:#ffffff;letter-spacing:5px;margin-bottom:6px;text-shadow:0 0 40px rgba(100,160,255,0.4);">CELESTIAL X</div>
+<div style="font-family:'Inter',sans-serif;font-size:0.75rem;color:#60a5fa;letter-spacing:4px;text-transform:uppercase;margin-bottom:28px;">
+NASA SPACE APPS CHALLENGE 2026 • SYSTEM ONBOARDING & SETUP
+</div>
+<div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.1);border-radius:20px;padding:28px 36px;backdrop-filter:blur(40px);box-shadow:0 24px 80px rgba(0,0,0,0.7);text-align:left;margin-bottom:28px;">
+<h3 style="font-family:'Orbitron',sans-serif;color:#fff;font-size:1.1rem;margin-bottom:12px;display:flex;align-items:center;gap:10px;">
+<span>🚀</span> Quick-Start Instructions — How to Run & Work With CELESTIAL X
+</h3>
+<p style="color:rgba(255,255,255,0.85);font-size:0.86rem;line-height:1.8;margin-bottom:16px;">
+CELESTIAL X reconciles over 20 years of NASA MODIS (1 km) and VIIRS (375 m) active fire observations into a harmonized burning activity calendar and persistent event intelligence platform.
+</p>
+<div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:12px;margin:18px 0;">
+<div style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:12px 14px;">
+<b style="color:#60a5fa;font-size:0.8rem;">1. SELECT LAUNCH MODE</b>
+<p style="font-size:0.75rem;color:rgba(255,255,255,0.65);margin-top:4px;line-height:1.5;">
+Use <b>Demo Mode</b> for instant 1-click access with preloaded 2000–2026 data, or enter a free NASA FIRMS key for live stream.
+</p>
+</div>
+<div style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:12px 14px;">
+<b style="color:#f59e0b;font-size:0.8rem;">2. BURNING CALENDARS</b>
+<p style="font-size:0.75rem;color:rgba(255,255,255,0.65);margin-top:4px;line-height:1.5;">
+Navigate to <b>📅 Burning Calendar</b> & <b>🕰️ Time Machine</b> to analyze 20-year baselines, anomaly percentiles & FRP intensity.
+</p>
+</div>
+<div style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:12px 14px;">
+<b style="color:#10b981;font-size:0.8rem;">3. RUN FIRE-FUSE</b>
+<p style="font-size:0.75rem;color:rgba(255,255,255,0.65);margin-top:4px;line-height:1.5;">
+Open <b>📥 Data Pipeline</b> to ingest observations, harmonize confidences, and cluster multi-day persistent events via H3 grids.
+</p>
+</div>
+<div style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:12px 14px;">
+<b style="color:#ec4899;font-size:0.8rem;">4. COPILOT & AUDIT</b>
+<p style="font-size:0.75rem;color:rgba(255,255,255,0.65);margin-top:4px;line-height:1.5;">
+Ask natural language questions in <b>🤖 Copilot</b> and audit cross-sensor calibration (3.82x ratio) in <b>🔬 Calibration Lab</b>.
+</p>
+</div>
+</div>
+<div style="height:1px;background:rgba(255,255,255,0.08);margin:20px 0;"></div>
+<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+<span style="font-size:0.82rem;color:rgba(255,255,255,0.7);">
+👉 <b>Recommended for evaluation:</b> Click <b>Demo Mode</b> to explore immediately with all datasets preloaded.
+</span>
+<span style="font-size:0.75rem;color:rgba(255,255,255,0.5);">
+Free key at <a href='https://firms.modaps.eosdis.nasa.gov/api/area/' target='_blank' style='color:#60a5fa;'>firms.modaps.eosdis.nasa.gov</a>
+</span>
+</div>
+</div>
+</div>""", unsafe_allow_html=True)
 
     col_l, col_c, col_r = st.columns([1, 2.4, 1])
     with col_c:
@@ -420,12 +414,6 @@ if not risk_df.empty:
             ),
             "style": DECK_TOOLTIP,
         },
-    )
-    st.markdown(
-        '<div style="border-radius:20px;overflow:hidden;'
-        'border:1px solid rgba(255,255,255,0.08);'
-        'box-shadow:0 20px 80px rgba(0,0,0,0.8);">',
-        unsafe_allow_html=True,
     )
     st.pydeck_chart(deck, use_container_width=True, height=500)
     st.markdown(

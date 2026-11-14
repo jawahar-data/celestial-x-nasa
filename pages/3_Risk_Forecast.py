@@ -140,9 +140,7 @@ deck = pdk.Deck(
         "style": DECK_TOOLTIP,
     },
 )
-st.markdown('<div style="border-radius:20px;overflow:hidden;border:1px solid rgba(255,255,255,0.08);box-shadow:0 20px 80px rgba(0,0,0,0.8);">', unsafe_allow_html=True)
 st.pydeck_chart(deck, use_container_width=True, height=520)
-# Removed split close div
 st.markdown(
     '<p style="font-size:0.78rem;color:rgba(255,255,255,0.55);margin-top:8px;text-align:center;">'
     '<span style="color:#dc2626;">&#9679;</span> Very High &nbsp;|&nbsp; '

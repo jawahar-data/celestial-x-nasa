@@ -1241,53 +1241,30 @@ def render_nav(active: str = "OVERVIEW") -> None:
         for icon, label, url in pages
     )
 
-    st.markdown(f"""
-    <div style="position:sticky;top:0;z-index:9999;
-         background:rgba(255,255,255,0.02);
-         border-bottom:0.5px solid rgba(255,255,255,0.05);
-         backdrop-filter:blur(12px) saturate(150%);
-         -webkit-backdrop-filter:blur(12px) saturate(150%);
-         box-shadow:0 4px 30px rgba(0,0,0,0.5);
-         padding:0 2rem;
-         margin-bottom:0;">
-
-      <!-- Row 1: Brand + Status -->
-      <div style="display:flex;align-items:center;height:65px;gap:0;overflow:hidden;">
-        <div style="display:flex;align-items:center;gap:12px;flex-shrink:0;margin-right:auto;">
-          <span style="font-size:2.0rem;filter:drop-shadow(0 0 14px rgba(120,180,255,0.8));
-                       animation:logoFloat 8s ease-in-out infinite;">🔭</span>
-          <div>
-            <div style="font-family:'Orbitron',sans-serif;font-size:1.4rem;font-weight:900;
-                        color:#ffffff;letter-spacing:3px;line-height:1;
-                        text-shadow:0 0 22px rgba(150,200,255,0.4);">CELESTIAL X</div>
-            <div style="font-family:'Inter',sans-serif;font-size:0.5rem;font-weight:400;
-                        color:#ffffff;letter-spacing:2.4px;text-transform:uppercase;margin-top:2px;
-                        opacity:1.0;">
-              Satellite Fire Intelligence &amp; Spatiotemporal Event Harmonization
-            </div>
-          </div>
-        </div>
-        <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;
-                    font-family:'JetBrains Mono',monospace;font-size:0.75rem;
-                    color:#ffffff;opacity:0.5;letter-spacing:0.4px;white-space:nowrap;">
-          <span style="width:6px;height:6px;border-radius:50%;background:#22c55e;
-                       box-shadow:0 0 8px rgba(34,197,94,0.9);
-                       display:inline-block;animation:blink 2.5s ease-in-out infinite;"></span>
-          SYSTEM ONLINE &nbsp;|&nbsp; {now_utc}
-        </div>
-      </div>
-
-      <!-- Row 2: Nav links -->
-      <div style="display:flex;align-items:center;position:relative;border-top:0.5px solid rgba(255,255,255,0.04);gap:8px;padding:4px 0;">
-        <button id="cx-nav-btn-left" type="button" onclick="var el=document.getElementById('cx-nav-track');if(el){{el.scrollLeft-=320;if(el.scrollBy)el.scrollBy({{left:-320,behavior:'smooth'}});}} return false;" title="Scroll left" style="display:flex;align-items:center;justify-content:center;flex-shrink:0;width:24px;height:24px;padding:0;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:50%;color:rgba(255,255,255,0.8);font-size:0.75rem;cursor:pointer;user-select:none;transition:all 0.2s ease;">❮</button>
-        <div id="cx-nav-track" style="display:flex;align-items:center;gap:3px;overflow-x:auto;scroll-behavior:smooth;flex:1 1 auto;min-width:0;max-width:calc(100vw - 130px);scrollbar-width:thin;scrollbar-color:rgba(96,165,250,0.2) transparent;">
-        {nav_links}
-        </div>
-        <button id="cx-nav-btn-right" type="button" onclick="var el=document.getElementById('cx-nav-track');if(el){{el.scrollLeft+=320;if(el.scrollBy)el.scrollBy({{left:320,behavior:'smooth'}});}} return false;" title="Scroll right" style="display:flex;align-items:center;justify-content:center;flex-shrink:0;width:24px;height:24px;padding:0;background:rgba(96,165,250,0.12);border:1px solid rgba(96,165,250,0.35);border-radius:50%;color:#60a5fa;font-size:0.75rem;cursor:pointer;transition:all 0.2s ease;box-shadow:0 0 8px rgba(96,165,250,0.2);user-select:none;">❯</button>
-      </div>
-
-    </div>
-    """, unsafe_allow_html=True)
+    st.markdown(f"""<div style="position:sticky;top:0;z-index:9999;background:rgba(255,255,255,0.02);border-bottom:0.5px solid rgba(255,255,255,0.05);backdrop-filter:blur(12px) saturate(150%);-webkit-backdrop-filter:blur(12px) saturate(150%);box-shadow:0 4px 30px rgba(0,0,0,0.5);padding:0 2rem;margin-bottom:0;">
+<div style="display:flex;align-items:center;height:65px;gap:0;overflow:hidden;">
+<div style="display:flex;align-items:center;gap:12px;flex-shrink:0;margin-right:auto;">
+<span style="font-size:2.0rem;filter:drop-shadow(0 0 14px rgba(120,180,255,0.8));animation:logoFloat 8s ease-in-out infinite;">🔭</span>
+<div>
+<div style="font-family:'Orbitron',sans-serif;font-size:1.4rem;font-weight:900;color:#ffffff;letter-spacing:3px;line-height:1;text-shadow:0 0 22px rgba(150,200,255,0.4);">CELESTIAL X</div>
+<div style="font-family:'Inter',sans-serif;font-size:0.5rem;font-weight:400;color:#ffffff;letter-spacing:2.4px;text-transform:uppercase;margin-top:2px;opacity:1.0;">
+Satellite Fire Intelligence &amp; Spatiotemporal Event Harmonization
+</div>
+</div>
+</div>
+<div style="display:flex;align-items:center;gap:6px;flex-shrink:0;font-family:'JetBrains Mono',monospace;font-size:0.75rem;color:#ffffff;opacity:0.5;letter-spacing:0.4px;white-space:nowrap;">
+<span style="width:6px;height:6px;border-radius:50%;background:#22c55e;box-shadow:0 0 8px rgba(34,197,94,0.9);display:inline-block;animation:blink 2.5s ease-in-out infinite;"></span>
+SYSTEM ONLINE &nbsp;|&nbsp; {now_utc}
+</div>
+</div>
+<div style="display:flex;align-items:center;position:relative;border-top:0.5px solid rgba(255,255,255,0.04);gap:8px;padding:4px 0;">
+<button id="cx-nav-btn-left" type="button" onclick="var el=document.getElementById('cx-nav-track');if(el){{el.scrollLeft-=320;if(el.scrollBy)el.scrollBy({{left:-320,behavior:'smooth'}});}} return false;" title="Scroll left" style="display:flex;align-items:center;justify-content:center;flex-shrink:0;width:24px;height:24px;padding:0;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:50%;color:rgba(255,255,255,0.8);font-size:0.75rem;cursor:pointer;user-select:none;transition:all 0.2s ease;">❮</button>
+<div id="cx-nav-track" style="display:flex;align-items:center;gap:3px;overflow-x:auto;scroll-behavior:smooth;flex:1 1 auto;min-width:0;max-width:calc(100vw - 130px);scrollbar-width:thin;scrollbar-color:rgba(96,165,250,0.2) transparent;">
+{nav_links}
+</div>
+<button id="cx-nav-btn-right" type="button" onclick="var el=document.getElementById('cx-nav-track');if(el){{el.scrollLeft+=320;if(el.scrollBy)el.scrollBy({{left:320,behavior:'smooth'}});}} return false;" title="Scroll right" style="display:flex;align-items:center;justify-content:center;flex-shrink:0;width:24px;height:24px;padding:0;background:rgba(96,165,250,0.12);border:1px solid rgba(96,165,250,0.35);border-radius:50%;color:#60a5fa;font-size:0.75rem;cursor:pointer;transition:all 0.2s ease;box-shadow:0 0 8px rgba(96,165,250,0.2);user-select:none;">❯</button>
+</div>
+</div>""", unsafe_allow_html=True)
 
 
 

@@ -295,10 +295,7 @@ else:
             "style": DECK_TOOLTIP,
         },
     )
-    # Wrapped in a premium card container
-    st.markdown('<div style="border-radius:20px;overflow:hidden;border:1px solid rgba(255,255,255,0.08);box-shadow:0 20px 80px rgba(0,0,0,0.8);margin-top:16px;">', unsafe_allow_html=True)
     st.pydeck_chart(deck, use_container_width=True, height=600)
-    st.markdown('</div>', unsafe_allow_html=True)
 
     # Legend
     st.markdown("""
