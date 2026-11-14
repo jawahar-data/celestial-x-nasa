@@ -107,17 +107,19 @@ with st.spinner("Compiling multi-decade harmonized burning calendar..."):
 
 # Current Status Metric Cards
 if status:
-    pct = status.get("anomaly_pct", 0)
+    pct = status.get("anomaly_pct") or 0.0
     color = "#ef4444" if pct > 30 else ("#f59e0b" if pct > 10 else ("#10b981" if pct > -20 else "#3b82f6"))
     sign = "+" if pct > 0 else ""
+    z_score_val = status.get('z_score') or 0.0
+    percentile_val = status.get('percentile_rank') or 50.0
 
     st.markdown(f"""
     <div class="cx-metrics">
       {metric_card("MONITORED PERIOD", f"{status.get('month_name')} {status.get('year')}", f"{status.get('years_in_baseline', 20)}-year baseline")}
-      {metric_card("CURRENT HOTSPOTS", f"{status.get('actual', 0):,}", "Harmonized active thermal detections")}
-      {metric_card("HISTORICAL MEDIAN", f"{status.get('median', 0):,}", f"IQR: {status.get('p25',0):,} – {status.get('p75',0):,}")}
-      {metric_card("ANOMALY DEVIATION", f"{sign}{pct:.1f}%", f"Z-Score: {status.get('z_score', 0.0):+.2f}", color)}
-      {metric_card("PERCENTILE RANKING", f"{status.get('percentile_rank', 50):.0f}th %ile", status.get("severity", "Normal"), color)}
+      {metric_card("CURRENT HOTSPOTS", f"{status.get('actual', 0) or 0:,}", "Harmonized active thermal detections")}
+      {metric_card("HISTORICAL MEDIAN", f"{status.get('median', 0) or 0:,}", f"IQR: {status.get('p25',0) or 0:,} – {status.get('p75',0) or 0:,}")}
+      {metric_card("ANOMALY DEVIATION", f"{sign}{float(pct):.1f}%", f"Z-Score: {float(z_score_val):+.2f}", color)}
+      {metric_card("PERCENTILE RANKING", f"{float(percentile_val):.0f}th %ile", status.get("severity", "Normal"), color)}
     </div>
     """, unsafe_allow_html=True)
 

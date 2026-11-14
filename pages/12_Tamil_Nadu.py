@@ -79,8 +79,10 @@ for col, (name, bounds) in zip(sub_cols, core_subs):
     with col:
         st_data = get_current_status(*bounds)
         if st_data:
-            pct = st_data.get("anomaly_pct", 0)
+            pct = st_data.get("anomaly_pct") or 0.0
             color = "#ef4444" if pct > 30 else ("#f59e0b" if pct > 10 else "#10b981")
+            actual_count = st_data.get('actual', 0) or 0
+            severity_str = st_data.get('severity', 'Normal')
             st.markdown(f"""
             <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.1);
                         border-radius:14px;padding:18px 14px;text-align:center;">
@@ -89,11 +91,11 @@ for col, (name, bounds) in zip(sub_cols, core_subs):
                 {name}
               </div>
               <div style="font-size:1.6rem;font-weight:800;color:#fff;font-family:'Orbitron',sans-serif;">
-                {st_data.get('actual', 0):,}
+                {actual_count:,}
               </div>
               <div style="font-size:0.72rem;color:rgba(255,255,255,0.55);margin:4px 0;">hotspots</div>
-              <div style="font-size:1.1rem;font-weight:700;color:{color};">{pct:+.1f}% anomaly</div>
-              <div style="font-size:0.68rem;color:rgba(255,255,255,0.4);">{st_data.get('severity', 'Normal')}</div>
+              <div style="font-size:1.1rem;font-weight:700;color:{color};">{float(pct):+.1f}% anomaly</div>
+              <div style="font-size:0.68rem;color:rgba(255,255,255,0.4);">{severity_str}</div>
             </div>
             """, unsafe_allow_html=True)
         else:

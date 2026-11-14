@@ -103,7 +103,7 @@ st.latex(r"""
 d = 2R \arcsin\!\left(\sqrt{\sin^2\!\left(\frac{\phi_2 - \phi_1}{2}\right)
     + \cos(\phi_1)\cos(\phi_2)\sin^2\!\left(\frac{\lambda_2 - \lambda_1}{2}\right)}\right)
 """)
-st.markdown("""where $R = 6371$ km, $\phi$ = latitude (radians), $\lambda$ = longitude (radians).
+st.markdown(r"""where $R = 6371$ km, $\phi$ = latitude (radians), $\lambda$ = longitude (radians).
 
 **Event Fusion Criteria:**
 - Two hotspots are merged into one event if **both** conditions hold:
