@@ -242,24 +242,81 @@ def assess_all_events(log_fn=None) -> int:
     except Exception:
         pass
 
-    from .weather_intelligence import store_event_weather
-    from .environmental_intelligence import store_event_environmental_context
+    from .weather_intelligence import store_event_weather, get_event_weather
+    from .environmental_intelligence import store_event_environmental_context, get_event_environmental_context
     from .fire_spread import assess_fire_spread_and_exposure
+    from concurrent.futures import ThreadPoolExecutor
 
+    # 1. Check existing weather and environmental context already in DB
+    cur.execute("""
+        SELECT event_id, latitude, longitude, observation_time,
+               temperature_c, relative_humidity_pct, wind_speed_kmh,
+               wind_direction_deg, precipitation_mm, surface_pressure_hpa,
+               fire_weather_index, is_forecast, source
+        FROM weather_observations
+    """)
+    existing_weather_by_eid = {dict(r)["event_id"]: dict(r) for r in cur.fetchall()}
+
+    cur.execute("""
+        SELECT * FROM environmental_context
+    """)
+    existing_env_by_eid = {dict(r)["event_id"]: dict(r) for r in cur.fetchall()}
+
+    # 2. Identify unique quantized coordinates that need network retrieval
+    needed_coords = set()
+    for ev in events:
+        eid = ev["event_id"]
+        lat = ev.get("centroid_lat")
+        lon = ev.get("centroid_lon")
+        if lat and lon and (eid not in existing_weather_by_eid or eid not in existing_env_by_eid):
+            macro_coord = (round(lat * 2.0) / 2.0, round(lon * 2.0) / 2.0)
+            needed_coords.add(macro_coord)
+
+    weather_lookup = {}
+    env_lookup = {}
+
+    if needed_coords:
+        def fetch_weather_and_env(coord):
+            c_lat, c_lon = coord
+            try:
+                wx = get_weather_for_location(c_lat, c_lon)
+            except Exception:
+                wx = None
+            try:
+                env = get_environmental_context_for_location(c_lat, c_lon)
+            except Exception:
+                env = None
+            return coord, wx, env
+
+        with ThreadPoolExecutor(max_workers=min(12, len(needed_coords))) as executor:
+            for coord, wx, env in executor.map(fetch_weather_and_env, needed_coords):
+                weather_lookup[coord] = wx
+                env_lookup[coord] = env
+
+    # 3. Assess each event using cached or pre-fetched context
     for event in events:
         lat = event.get("centroid_lat")
         lon = event.get("centroid_lon")
         ev_id = event["event_id"]
+        qcoord = (round(lat * 2.0) / 2.0, round(lon * 2.0) / 2.0) if (lat and lon) else None
 
-        weather_dict = get_weather_for_location(lat, lon) if (lat and lon) else None
-        env_dict = get_environmental_context_for_location(lat, lon) if (lat and lon) else None
+        # Resolve weather (prefer DB cache, then concurrent lookup)
+        weather_dict = existing_weather_by_eid.get(ev_id)
+        if not weather_dict and qcoord:
+            weather_dict = weather_lookup.get(qcoord)
+            if weather_dict:
+                store_event_weather(ev_id, weather_dict, conn)
+                existing_weather_by_eid[ev_id] = weather_dict
 
-        if weather_dict:
-            store_event_weather(ev_id, weather_dict, conn)
-        if env_dict:
-            store_event_environmental_context(ev_id, env_dict, conn)
+        # Resolve environmental context (prefer DB cache, then concurrent lookup)
+        env_dict = existing_env_by_eid.get(ev_id)
+        if not env_dict and qcoord:
+            env_dict = env_lookup.get(qcoord)
+            if env_dict:
+                store_event_environmental_context(ev_id, env_dict, conn)
+                existing_env_by_eid[ev_id] = env_dict
 
-        # Potential fire spread assessment
+        # Potential fire spread assessment (passes pre-computed weather & env!)
         if lat and lon:
             try:
                 assess_fire_spread_and_exposure(

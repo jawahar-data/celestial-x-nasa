@@ -127,12 +127,15 @@ def find_nearest_protected_area(lat: float, lon: float) -> Tuple[Optional[str], 
     return (nearest_name, round(min_dist, 1), importance)
 
 
-@st.cache_data(ttl=300)
+@st.cache_data(ttl=86400, show_spinner=False)
 def query_planetary_computer_stac(lat: float, lon: float, collection: str = "cop-dem-glo-30") -> Optional[Dict[str, Any]]:
     """
     Search Microsoft Planetary Computer STAC catalog for Earth observation scene metadata.
+    Quantizes coordinates to 0.1° and caches for 24 hours.
     """
-    bbox = [lon - 0.05, lat - 0.05, lon + 0.05, lat + 0.05]
+    qlat = round(float(lat) * 2.0) / 2.0
+    qlon = round(float(lon) * 2.0) / 2.0
+    bbox = [qlon - 0.05, qlat - 0.05, qlon + 0.05, qlat + 0.05]
     payload = {
         "collections": [collection],
         "bbox": bbox,
@@ -143,7 +146,7 @@ def query_planetary_computer_stac(lat: float, lon: float, collection: str = "cop
         headers["Ocp-Apim-Subscription-Key"] = PLANETARY_COMPUTER_TOKEN
 
     try:
-        resp = requests.post(f"{PLANETARY_COMPUTER_STAC_URL}/search", json=payload, headers=headers, timeout=6)
+        resp = requests.post(f"{PLANETARY_COMPUTER_STAC_URL}/search", json=payload, headers=headers, timeout=4)
         if resp.status_code == 200:
             data = resp.json()
             features = data.get("features", [])

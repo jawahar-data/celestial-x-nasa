@@ -107,15 +107,19 @@ def get_wind_cardinal_direction(deg: Optional[float]) -> str:
     return directions[val]
 
 
-@st.cache_data(ttl=300)
+@st.cache_data(ttl=1800, show_spinner=False)
 def fetch_weather_meteomatics(lat: float, lon: float, dt_iso: Optional[str] = None) -> Optional[Dict[str, Any]]:
     """
     Query Meteomatics API for atmospheric parameters at (lat, lon).
-    Requires METEOMATICS_USERNAME and METEOMATICS_PASSWORD.
+    Quantizes coordinates to 0.1° (~11 km) to match numerical model grid and optimize throughput.
     """
     user, pwd = _get_meteomatics_credentials()
     if not user or not pwd:
         return None
+
+    # Quantize to numerical weather model grid cell (0.1 deg ~ 11 km)
+    qlat = round(float(lat) * 2.0) / 2.0
+    qlon = round(float(lon) * 2.0) / 2.0
 
     if dt_iso:
         dt_str = dt_iso.replace("Z", "+00:00")
@@ -127,10 +131,10 @@ def fetch_weather_meteomatics(lat: float, lon: float, dt_iso: Optional[str] = No
         valid_time = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
     parameters = "t_2m:C,relative_humidity_2m:p,wind_speed_10m:kmh,wind_dir_10m:d,precip_1h:mm,msl_pressure:hPa"
-    url = f"{METEOMATICS_BASE_URL}/{valid_time}/{parameters}/{round(lat, 4)},{round(lon, 4)}/json"
+    url = f"{METEOMATICS_BASE_URL}/{valid_time}/{parameters}/{qlat},{qlon}/json"
 
     try:
-        resp = requests.get(url, auth=(user, pwd), timeout=8)
+        resp = requests.get(url, auth=(user, pwd), timeout=4)
         if resp.status_code == 200:
             data = resp.json()
             param_map = {}
@@ -173,15 +177,17 @@ def fetch_weather_meteomatics(lat: float, lon: float, dt_iso: Optional[str] = No
         return None
 
 
-@st.cache_data(ttl=300)
+@st.cache_data(ttl=1800, show_spinner=False)
 def fetch_weather_open_meteo(lat: float, lon: float) -> Optional[Dict[str, Any]]:
     """
     Query Open-Meteo API for real-time and forecast meteorological conditions.
-    Provides free, high-availability numerical weather model data (GFS/ECMWF).
+    Quantizes coordinates to 0.1° (~11 km) to maximize caching performance.
     """
-    url = f"{OPEN_METEO_BASE_URL}?latitude={round(lat, 4)}&longitude={round(lon, 4)}&current=temperature_2m,relative_humidity_2m,precipitation,surface_pressure,wind_speed_10m,wind_direction_10m&timezone=auto"
+    qlat = round(float(lat) * 2.0) / 2.0
+    qlon = round(float(lon) * 2.0) / 2.0
+    url = f"{OPEN_METEO_BASE_URL}?latitude={qlat}&longitude={qlon}&current=temperature_2m,relative_humidity_2m,precipitation,surface_pressure,wind_speed_10m,wind_direction_10m&timezone=auto"
     try:
-        resp = requests.get(url, timeout=6)
+        resp = requests.get(url, timeout=4)
         if resp.status_code == 200:
             data = resp.json()
             curr = data.get("current", {})
