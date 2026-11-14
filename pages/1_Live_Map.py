@@ -10,7 +10,10 @@ import streamlit as st
 import streamlit.components.v1 as components
 import pandas as pd
 import pydeck as pdk
-import h3
+try:
+    import h3
+except Exception:
+    h3 = None
 
 from celestial.styles    import ASTRA_ORB_HTML, GLOBAL_CSS, render_nav, footer, section_header, DECK_TOOLTIP
 from celestial.database  import init_database
@@ -52,15 +55,16 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 with st.container(border=True):
-    c1, c2, c3, c4, c5, c6, c7, c8 = st.columns([1,1,1,1,1,1,1,1.8])
+    c1, c2, c3, c4, c5, c6, c7, c8, c9 = st.columns([1,1,1,1,1,1,1,1,1.8])
     with c1: show_modis  = st.checkbox("🔴 MODIS",        value=True)
     with c2: show_viirs  = st.checkbox("🟡 VIIRS",        value=True)
     with c3: show_active = st.checkbox("🔥 Active Events", value=True)
     with c4: show_closed = st.checkbox("⬛ Closed",       value=False)
     with c5: show_risk   = st.checkbox("⚠ Risk",          value=True)
-    with c6: show_h3     = st.checkbox("⬡ H3 Grid",       value=False)
-    with c7: show_3d     = st.checkbox("🏛 3D Columns",   value=True)
-    with c8:
+    with c6: show_spread = st.checkbox("💨 Spread",       value=True)
+    with c7: show_h3     = st.checkbox("⬡ H3 Grid",       value=False)
+    with c8: show_3d     = st.checkbox("🏛 3D Columns",   value=True)
+    with c9:
         map_style_label = st.selectbox("Basemap", [
             "🛰 Satellite", "🛰 Satellite Streets", "🌑 Dark", "☀ Light"
         ], index=0, label_visibility="collapsed")
@@ -178,8 +182,48 @@ if show_closed and not risk_df.empty:
             id="closed_events",
         ))
 
+# ── Potential Fire Spread Vectors ─────────────────────────────────────────────
+if show_spread:
+    try:
+        from celestial.database import get_connection
+        conn = get_connection()
+        spread_df = pd.read_sql_query("""
+            SELECT fsa.event_id, fsa.downwind_bearing_deg, fsa.exposure_radius_24h_km,
+                   fsa.rate_of_spread_kmh, fe.centroid_lat as latitude, fe.centroid_lon as longitude
+            FROM fire_spread_assessments fsa
+            JOIN fire_events fe ON fsa.event_id = fe.event_id
+            WHERE fe.centroid_lat IS NOT NULL;
+        """, conn)
+        conn.close()
+        if not spread_df.empty:
+            lines = []
+            for _, r in spread_df.iterrows():
+                lat1, lon1 = r["latitude"], r["longitude"]
+                rad = math.radians(r["downwind_bearing_deg"])
+                dist_km = min(r["exposure_radius_24h_km"] or 10, 50)
+                d_lat = (dist_km / 111.0) * math.cos(rad)
+                d_lon = (dist_km / (111.0 * math.cos(math.radians(lat1)))) * math.sin(rad)
+                lines.append({
+                    "start": [lon1, lat1],
+                    "end": [lon1 + d_lon, lat1 + d_lat],
+                    "event_id": r["event_id"],
+                    "ros": r["rate_of_spread_kmh"],
+                })
+            if lines:
+                layers.append(pdk.Layer(
+                    "LineLayer", data=lines,
+                    get_source_position="start",
+                    get_target_position="end",
+                    get_color=[56, 189, 248, 220],
+                    get_width=3,
+                    pickable=True,
+                    id="spread_vectors",
+                ))
+    except Exception:
+        pass
+
 # ── H3 hexagon grid ────────────────────────────────────────────────────────────
-if show_h3 and not events_df.empty:
+if show_h3 and h3 is not None and not events_df.empty:
     h3_features = []
     for _, ev in events_df.head(20).iterrows():
         cells = get_event_h3_cells(ev["event_id"])

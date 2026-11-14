@@ -15,9 +15,12 @@ from celestial.styles    import (ASTRA_ORB_HTML, GLOBAL_CSS, render_nav, footer,
 from celestial.database  import init_database
 from celestial.fire_fuse  import (get_events_dataframe, get_event_timeline,
                                    get_event_observations, get_event_h3_cells)
-from celestial.risk       import compute_risk_score, RISK_COLOR_MAP
+from celestial.risk       import compute_risk_score, compute_risk_score_v2, RISK_COLOR_MAP
 from celestial.reports    import generate_event_report, get_report_content
 from celestial.explainability import explain_event_harmonization
+from celestial.weather_intelligence import get_event_weather
+from celestial.environmental_intelligence import get_event_environmental_context
+from celestial.fire_spread import get_latest_spread_assessment
 import plotly.graph_objects as go
 
 init_database()
@@ -177,7 +180,12 @@ if selected_id:
     # Removed split close div
 
     # Detail tabs
-    t1, t2, t3, t4, t5, t6 = st.tabs(["🕒 Timeline", "🗺️ Satellite Map", "⚡ Risk Analysis", "🔍 Harmonization Audit", "📈 Persistence Analytics", "📄 Incident Report"])
+    t1, t2, t_w, t_e, t_s, t3, t4, t5, t6 = st.tabs([
+        "🕒 Timeline", "🗺️ Satellite Map", "🌡️ Weather Context", 
+        "🌍 Environmental Context", "💨 Potential Spread", 
+        "⚡ Risk Analysis (v2)", "🔍 Harmonization Audit", 
+        "📈 Persistence Analytics", "📄 Incident Report"
+    ])
 
     with t1:
         timeline = get_event_timeline(selected_id)
@@ -231,7 +239,6 @@ if selected_id:
             )
             st.markdown('<div style="border-radius:16px;overflow:hidden;border:1px solid rgba(255,255,255,0.08);">', unsafe_allow_html=True)
             st.pydeck_chart(deck, use_container_width=True, height=480)
-            # Removed split close div
             st.markdown(
                 '<p style="font-size:0.78rem;color:rgba(255,255,255,0.55);margin-top:8px;text-align:center;">'
                 '<span style="color:#ef4444;">&#9679;</span> MODIS (1 km) &nbsp;|&nbsp; '
@@ -242,19 +249,80 @@ if selected_id:
         else:
             st.info("No observation map data for this event.")
 
+    with t_w:
+        st.markdown(section_header("🌡️", "ATMOSPHERIC FIRE WEATHER CONDITIONS"), unsafe_allow_html=True)
+        w_data = get_event_weather(selected_id)
+        if w_data:
+            wc1, wc2, wc3, wc4 = st.columns(4)
+            with wc1:
+                st.metric("Temperature", f"{w_data.get('temp_c', 'N/A')} °C")
+            with wc2:
+                st.metric("Relative Humidity", f"{w_data.get('relative_humidity_pct', 'N/A')}%")
+            with wc3:
+                st.metric("Wind Speed", f"{w_data.get('wind_speed_kmh', 'N/A')} km/h", f"Direction: {w_data.get('wind_cardinal', 'N/A')}")
+            with wc4:
+                st.metric("Fosberg Index (FFWI)", f"{w_data.get('fosberg_index', 'N/A')}/100")
+            
+            st.caption(f"Weather Data Source: **{w_data.get('weather_source')}** (Forecast: `{w_data.get('is_forecast')}`) · Recorded at `{w_data.get('observed_at')}`")
+        else:
+            st.info("No localized weather observation recorded for this event yet.")
+
+    with t_e:
+        st.markdown(section_header("🌍", "MICROSOFT PLANETARY COMPUTER STAC & TERRAIN CONTEXT"), unsafe_allow_html=True)
+        e_data = get_event_environmental_context(selected_id)
+        if e_data:
+            ec1, ec2, ec3 = st.columns(3)
+            with ec1:
+                st.metric("Copernicus DEM Elevation", f"{e_data.get('elevation_m', 'N/A')} m")
+                st.metric("Terrain Slope", f"{e_data.get('slope_deg', 'N/A')}° ({e_data.get('aspect_cardinal', 'N/A')} aspect)")
+            with ec2:
+                st.metric("ESA WorldCover 10m", str(e_data.get('landcover_class', 'N/A')))
+                st.metric("Fuel Flammability", str(e_data.get('fuel_flammability_class', 'N/A')))
+            with ec3:
+                st.metric("Nearest Protected Reserve", str(e_data.get('nearest_protected_area', 'N/A')))
+                st.metric("Distance to Reserve", f"{e_data.get('protected_area_distance_km', 'N/A')} km")
+            
+            st.caption(f"Environmental Sensitivity Score (ESI): **{e_data.get('environmental_sensitivity_score', 'N/A')}/100** · Retrieved: `{e_data.get('retrieved_at')}`")
+        else:
+            st.info("No environmental context records populated for this event.")
+
+    with t_s:
+        st.markdown(section_header("💨", "POTENTIAL FIRE SPREAD & DOWNWIND EXPOSURE (v1)"), unsafe_allow_html=True)
+        s_data = get_latest_spread_assessment(selected_id)
+        if s_data:
+            sc1, sc2, sc3 = st.columns(3)
+            with sc1:
+                st.metric("Downwind Heading", f"{s_data.get('downwind_cardinal', 'N/A')} ({s_data.get('downwind_bearing_deg', 'N/A')}°)")
+            with sc2:
+                st.metric("Rate of Spread Proxy", f"{s_data.get('rate_of_spread_kmh', 'N/A')} km/h")
+            with sc3:
+                st.metric("24h Downwind Corridor", f"Up to {s_data.get('exposure_radius_24h_km', 'N/A')} km")
+            
+            st.markdown(f"**Threatened Ecological Assets:** `{s_data.get('threatened_assets', 'None identified')}`")
+            st.caption("Disclaimer: CELESTIAL-X-SPREAD-v1 is an atmospheric screening exposure model, not a physical fire perimeter.")
+        else:
+            st.info("No spread assessment calculated for this event yet.")
+
     with t3:
+        w_c = get_event_weather(selected_id) or {}
+        e_c = get_event_environmental_context(selected_id) or {}
+        rv2 = compute_risk_score_v2(ev.to_dict(), w_c, e_c)
+        r_score = rv2["composite_risk_score"]
+        r_level = rv2["risk_level"]
+        f_scores = rv2["factor_scores"]
+
         st.markdown(f"""
-> ⚠️ **CELESTIAL-X-RISK-v1** is a project-defined analytical indicator — **NOT** a scientifically validated forecast.
+> 🛡️ **CELESTIAL-X-RISK-v2** — Transparent 5-Pillar Scientific Multi-Criteria Index
 
-| Component | Value | Weight |
-|---|---|---|
-| Fire Radiative Power | {ev.get('peak_frp', 0) or 0:.0f} MW peak | 40% |
-| Duration | {dur_str} | 25% |
-| Spatial Extent | {ev.get('h3_cell_count', 0)} H3 res-7 cells | 20% |
-| Satellite Agreement | MODIS: {ev.get('modis_count',0)} &nbsp; VIIRS: {ev.get('viirs_count',0)} | 10% |
-| Confidence | {(ev.get('max_confidence',0.5) or 0.5)*100:.0f}% normalized | 5% |
+| Pillar Factor | Weight | Sub-score (0-1) | Observed Indicators |
+|---|---|---|---|
+| **Thermal Intensity** | 30% | `{f_scores.get('thermal_intensity', 0):.3f}` | {ev.get('peak_frp', 0) or 0:.0f} MW peak FRP |
+| **Duration & Persistence** | 20% | `{f_scores.get('duration_persistence', 0):.3f}` | {dur_str} ({ev.get('observation_count', 0)} obs) |
+| **Fire Weather Deficit** | 20% | `{f_scores.get('weather_deficit', 0):.3f}` | RH: {w_c.get('relative_humidity_pct', 'N/A')}%, Wind: {w_c.get('wind_speed_kmh', 'N/A')} km/h |
+| **Fuel & Topography** | 15% | `{f_scores.get('fuel_topography', 0):.3f}` | Slope: {e_c.get('slope_deg', 'N/A')}°, Fuel: {e_c.get('landcover_class', 'N/A')} |
+| **Conservation Proximity** | 15% | `{f_scores.get('conservation_proximity', 0):.3f}` | {e_c.get('nearest_protected_area', 'None')} ({e_c.get('protected_area_distance_km', 'N/A')} km) |
 
-**Composite Score:** `{score:.4f} / 1.0000` &nbsp;&nbsp;|&nbsp;&nbsp; **Risk Level:** **{level}**
+**Composite Risk Score:** `{r_score:.4f} / 1.0000` &nbsp;&nbsp;|&nbsp;&nbsp; **Classification:** **{r_level}**
         """)
         if not (timeline := get_event_timeline(selected_id)).empty:
             sat_cnt = timeline.groupby("satellite")["obs_count"].sum().reset_index()

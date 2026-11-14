@@ -1,8 +1,13 @@
 """
-CELESTIAL X - Fire Intelligence Copilot
-=========================================
+CELESTIAL X 2.0 - Fire Intelligence Copilot
+============================================
 AI-powered conversational and analytical assistant querying the harmonized
 satellite database directly. All answers are grounded in verifiable SQL queries.
+Features:
+  - Real-time weather, fuel condition, and Fosberg index context
+  - Microsoft Planetary Computer STAC environmental sensitivity & protected reserves
+  - Potential downwind spread & exposure corridors
+  - Full SQL provenance and audit trail
 """
 import sys, os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
@@ -13,7 +18,7 @@ import pandas as pd
 import plotly.express as px
 
 from celestial.styles   import ASTRA_ORB_HTML, GLOBAL_CSS, render_nav, footer, section_header, metric_card
-from celestial.database import init_database
+from celestial.database import init_database, get_connection
 from celestial.copilot  import query_copilot, COPILOT_SUGGESTED_PROMPTS
 
 init_database()
@@ -32,19 +37,20 @@ st.markdown("""
     DATA-GROUNDED FIRE INTELLIGENCE ASSISTANT — NO HALLUCINATIONS
   </div>
   <div class="cx-hero-title" style="font-size:clamp(2rem,4vw,3.2rem);">FIRE INTELLIGENCE COPILOT</div>
-  <p class="cx-hero-sub-title">Natural Language Queries • Direct SQL Provenance • Verifiable Satellite Science</p>
+  <p class="cx-hero-sub-title">Natural Language Queries • Multi-Pillar Environmental Context • Direct SQL Provenance</p>
 </div>
 <div class="cx-divider"></div>
 """, unsafe_allow_html=True)
 
-st.markdown(section_header("💡", "QUICK ANALYTICAL PROMPTS"), unsafe_allow_html=True)
+st.markdown(section_header("💡", "ANALYTICAL INTELLIGENCE PROMPTS"), unsafe_allow_html=True)
 
-# Suggested prompt buttons
-cols = st.columns(len(COPILOT_SUGGESTED_PROMPTS))
+# Grid layout for suggested prompt chips (2 columns)
 selected_prompt = None
+c1, c2 = st.columns(2)
 for idx, prompt_text in enumerate(COPILOT_SUGGESTED_PROMPTS):
-    with cols[idx]:
-        if st.button(prompt_text, key=f"chip_{idx}", use_container_width=True):
+    target_col = c1 if idx % 2 == 0 else c2
+    with target_col:
+        if st.button(f"⚡ {prompt_text}", key=f"chip_{idx}", use_container_width=True):
             selected_prompt = prompt_text
 
 st.markdown("<div style='height:16px;'></div>", unsafe_allow_html=True)
@@ -53,16 +59,16 @@ st.markdown("<div style='height:16px;'></div>", unsafe_allow_html=True)
 user_input = st.text_input(
     "Ask a question about the satellite fire database:",
     value=selected_prompt or "",
-    placeholder="e.g. Which month had the highest fire activity in Tamil Nadu?",
-    help="Type any query about historical trends, persistent events, or sensor comparisons."
+    placeholder="e.g. Which fire events are associated with high winds or dry weather?",
+    help="Type any query about historical trends, multi-day events, weather, spread, or protected reserves."
 )
 
 if user_input:
-    with st.spinner("Analyzing harmonized database..."):
+    with st.spinner("Executing verifiable SQL queries across satellite intelligence tables..."):
         res = query_copilot(user_input)
 
     st.markdown("<div style='height:20px;'></div>", unsafe_allow_html=True)
-    st.markdown(section_header("🤖", "COPILOT RESPONSE"), unsafe_allow_html=True)
+    st.markdown(section_header("🤖", "COPILOT INTELLIGENCE RESPONSE"), unsafe_allow_html=True)
 
     st.markdown(f"""
     <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.12);
@@ -82,6 +88,23 @@ if user_input:
     if res.get("sql_executed"):
         with st.expander("🔍 Inspect Verifiable SQL Query Executed", expanded=False):
             st.code(res["sql_executed"], language="sql")
-            st.caption("Grounded in CELESTIAL X SQLite Database (`harmonized_observations` & `fire_events`).")
+            st.caption("Grounded in CELESTIAL X SQLite Database (`harmonized_observations`, `fire_events`, `weather_observations`, `environmental_context`, `fire_spread_assessments`).")
+
+# Recent Copilot Query History
+st.markdown("<div style='height:24px;'></div>", unsafe_allow_html=True)
+with st.expander("📜 Recent Query Audit Log (ai_query_history)", expanded=False):
+    try:
+        conn = get_connection()
+        history_df = pd.read_sql_query(
+            "SELECT query_id, user_query, sql_executed, response_status, timestamp FROM ai_query_history ORDER BY query_id DESC LIMIT 10;",
+            conn
+        )
+        conn.close()
+        if not history_df.empty:
+            st.dataframe(history_df, use_container_width=True)
+        else:
+            st.info("No query history recorded yet.")
+    except Exception as e:
+        st.caption(f"Query history unavailable: {e}")
 
 st.markdown(footer(), unsafe_allow_html=True)

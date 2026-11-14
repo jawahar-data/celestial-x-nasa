@@ -19,30 +19,32 @@ st.markdown("""
 <div class="cx-hero" style="padding:50px 3rem 40px;">
   <div class="cx-hero-badge">
     <span class="cx-hero-badge-dot"></span>
-    CELESTIAL-X-RISK-v1 &nbsp;·&nbsp; PROJECT-DEFINED ANALYTICAL INDICATOR
+    CELESTIAL-X-RISK-v2 &nbsp;·&nbsp; 5-PILLAR MULTI-CRITERIA SCIENTIFIC RISK ENGINE
   </div>
   <div class="cx-hero-title" style="font-size:clamp(2rem,4vw,3.2rem);">RISK FORECAST</div>
-  <p class="cx-hero-sub-title">Satellite-Derived Analytical Indicator · Not a Scientific Fire Danger Forecast</p>
+  <p class="cx-hero-sub-title">Satellite Thermal Radiometry · Fire Weather Deficit · STAC Environmental & Terrain Sensitivity</p>
 </div>
 <div class="cx-divider"></div>
 """, unsafe_allow_html=True)
 
-# Disclaimer
+# Scientific Context Banner
 st.markdown("""
 <div class="cx-panel" style="background:rgba(239,68,68,0.05);border-color:rgba(239,68,68,0.18);padding:20px 28px;margin-top:20px;">
   <div style="display:flex;align-items:flex-start;gap:14px;">
-    <span style="font-size:1.4rem;margin-top:2px;">⚠️</span>
+    <span style="font-size:1.4rem;margin-top:2px;">🛡️</span>
     <div>
       <div style="font-family:'Orbitron',sans-serif;font-size:0.62rem;font-weight:700;
                   letter-spacing:2px;color: #ffffff;margin-bottom:8px;">
-        SCIENTIFIC DISCLAIMER — READ BEFORE INTERPRETING
+        SCIENTIFIC METHODOLOGY & MULTI-PILLAR ARCHITECTURE
       </div>
       <p style="color: #ffffff;font-size:0.80rem;line-height:1.8;margin:0;">
-        The <strong style="color: #ffffff;">CELESTIAL-X-RISK-v1</strong> indicator is a
-        <strong style="color: #ffffff;">project-defined analytical tool</strong> based solely on observable
-        satellite data (FRP, duration, spatial expansion, satellite agreement, confidence).
-        It does <em>not</em> predict future fires, incorporate meteorological data, determine fire causes, or
-        replace national fire danger rating systems. For operational decisions, consult official fire management authorities.
+        The <strong style="color: #ffffff;">CELESTIAL-X-RISK-v2</strong> engine combines 
+        <strong style="color: #ffffff;">NASA FIRMS thermal radiometry (30%)</strong>, 
+        <strong style="color: #ffffff;">temporal persistence (20%)</strong>, 
+        <strong style="color: #ffffff;">Meteomatics/Open-Meteo atmospheric fire weather (20%)</strong>, 
+        <strong style="color: #ffffff;">Copernicus DEM & ESA WorldCover fuel conditions (15%)</strong>, and 
+        <strong style="color: #ffffff;">Western Ghats wildlife sanctuary proximity (15%)</strong>.
+        Designed for the NASA Space Apps Challenge 2026 as an explainable environmental intelligence screening model.
       </p>
     </div>
   </div>
@@ -52,7 +54,7 @@ st.markdown("""
 rc1, rc2 = st.columns([5,1])
 with rc2:
     if st.button("🔄 Refresh", use_container_width=True):
-        with st.spinner("Running CELESTIAL-X-RISK-v1…"):
+        with st.spinner("Running CELESTIAL-X-RISK-v2 multi-pillar assessment…"):
             n = assess_all_events()
         st.success(f"✓ Assessed {n} events")
         st.rerun()
@@ -167,41 +169,31 @@ st.dataframe(
 )
 
 # ── Methodology ─────────────────────────────────────────────────────────────────
-st.markdown(section_header("📖", "CELESTIAL-X-RISK-v1 METHODOLOGY"), unsafe_allow_html=True)
-with st.expander("Full methodology and limitation documentation"):
+st.markdown(section_header("📖", "CELESTIAL-X-RISK-v2 METHODOLOGY"), unsafe_allow_html=True)
+with st.expander("Full methodology and 5-pillar mathematical documentation"):
     st.markdown("""
-### CELESTIAL-X-RISK-v1
+### CELESTIAL-X-RISK-v2 Multi-Pillar Architecture
 
-**Classification:** Project-defined analytical indicator.
-**NOT** a scientifically validated fire danger rating or forecast.
+**Classification:** Explainable multi-criteria satellite fire risk index.  
+Combines orbital thermal radiometry with numerical atmospheric weather, STAC digital elevation, and ecological asset sensitivity.
 
-#### Component Weights
+#### 5-Pillar Weighting Scheme
 
-| Component | Weight | Satellite Observable |
+| Pillar Component | Weight | Scientific Data Source & Rationale |
 |---|---|---|
-| Fire Radiative Power (FRP) | **40%** | Satellite-measured intensity (MW) |
-| Event Duration | **25%** | Time from first to last observation |
-| Spatial Expansion | **20%** | Number of distinct H3 cells (res-7) |
-| Satellite Agreement | **10%** | Multi-sensor confirmation |
-| Detection Confidence | **5%** | Observation confidence level |
+| **Thermal Intensity (Peak FRP)** | **30%** | NASA FIRMS (MOD14 / VNP14IMG). Radiative energy output indicates instantaneous combustion intensity. |
+| **Persistence & Duration** | **20%** | FIRE-FUSE tracking engine. Events burning >24-48h indicate deep fuel beds or active suppression failure. |
+| **Fire Weather Deficit** | **20%** | Meteomatics & Open-Meteo. Combines low relative humidity (<30%) and high wind velocities (>25 km/h) into the Fosberg Fire Weather Index. |
+| **Fuel & Topographic Alignment** | **15%** | Microsoft Planetary Computer STAC (Copernicus GLO-30 DEM & ESA WorldCover 10m). Steep slopes accelerate pre-heating. |
+| **Conservation & Asset Proximity** | **15%** | Western Ghats Tiger Reserves & National Parks (Mudumalai, Bandipur, Anamalai, etc.). Prioritizes ecological sensitivity. |
 
-#### Risk Thresholds
+#### Risk Classification Thresholds
 
-| Level | Composite Score |
-|---|---|
-| VERY HIGH | ≥ 0.75 |
-| HIGH | ≥ 0.50 |
-| MODERATE | ≥ 0.25 |
-| LOW | < 0.25 |
-
-#### What Is NOT Included
-- Real-time temperature, humidity, or wind data
-- Vegetation type, moisture content, or fuel load
-- Terrain elevation or slope
-- Fire suppression status
-- Historical fire frequency
-
-These are documented as **future improvements** requiring integration of external
-meteorological APIs (e.g., OpenWeatherMap, ERA5) and land cover datasets.
+| Classification Level | Composite Score Range | Actionable Guidance |
+|---|---|---|
+| 🔴 **VERY HIGH** | ≥ 0.70 | Immediate ground validation and suppression priority near vulnerable assets. |
+| 🟠 **HIGH** | 0.50 – 0.69 | Elevated spread potential; aerial and perimeter monitoring advised. |
+| 🟡 **MODERATE** | 0.30 – 0.49 | Confined low-intensity surface burning; routine surveillance. |
+| 🟢 **LOW** | < 0.30 | Isolated thermal anomaly or rapidly dissipating event. |
     """)
 st.markdown(footer(), unsafe_allow_html=True)

@@ -220,7 +220,12 @@ with tab_explain:
 
         audit = explain_event_harmonization(sel_ev_id)
         if "error" not in audit and audit.get("trace_records"):
-            st.markdown(f"**Event Summary:** `{audit['event_id']}` • Centroid: `{audit['event_summary'].get('centroid_lat', 0):.3f}N, {audit['event_summary'].get('centroid_lon', 0):.3f}E`")
+            ev_summary = audit.get("event_summary") or {}
+            c_lat = ev_summary.get("centroid_lat")
+            c_lon = ev_summary.get("centroid_lon")
+            lat_str = f"{float(c_lat):.3f}°N" if c_lat is not None and not pd.isna(c_lat) else "N/A"
+            lon_str = f"{float(c_lon):.3f}°E" if c_lon is not None and not pd.isna(c_lon) else "N/A"
+            st.markdown(f"**Event Summary:** `{audit['event_id']}` • Centroid: `{lat_str}, {lon_str}`")
             
             trace_df = pd.DataFrame(audit["trace_records"])
             st.dataframe(

@@ -188,6 +188,105 @@ def init_database() -> None:
     )
     """)
 
+    # ── CELESTIAL X 2.0: Weather Observations ─────────────────────────────────
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS weather_observations (
+        id                  INTEGER PRIMARY KEY AUTOINCREMENT,
+        event_id            TEXT    REFERENCES fire_events(event_id),
+        latitude            REAL    NOT NULL,
+        longitude           REAL    NOT NULL,
+        observation_time    TEXT    NOT NULL,        -- ISO8601 UTC
+        temperature_c       REAL,
+        relative_humidity_pct REAL,
+        wind_speed_kmh      REAL,
+        wind_direction_deg  REAL,                    -- 0-360 degrees
+        precipitation_mm    REAL,
+        surface_pressure_hpa REAL,
+        fire_weather_index  REAL,                    -- composite fire weather indicator
+        is_forecast         INTEGER DEFAULT 0,       -- 0=observed, 1=forecast
+        source              TEXT    DEFAULT 'METEOMATICS', -- METEOMATICS | OPEN_METEO | CLIMATOLOGY
+        created_at          TEXT    DEFAULT (datetime('now'))
+    )
+    """)
+
+    # ── CELESTIAL X 2.0: Environmental Context (Microsoft Planetary Computer) ─
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS environmental_context (
+        id                  INTEGER PRIMARY KEY AUTOINCREMENT,
+        event_id            TEXT    REFERENCES fire_events(event_id),
+        latitude            REAL    NOT NULL,
+        longitude           REAL    NOT NULL,
+        elevation_m         REAL,
+        slope_deg           REAL,
+        aspect_deg          REAL,
+        land_cover_code     INTEGER,
+        land_cover_class    TEXT,                    -- e.g. Tree cover, Shrubland, Grassland
+        vegetation_density_pct REAL,
+        fuel_model          TEXT,                    -- standard fuel classification proxy
+        protected_area_name TEXT,
+        dist_to_protected_area_km REAL,
+        environmental_sensitivity_score REAL,        -- 0-100 composite index
+        source              TEXT    DEFAULT 'PLANETARY_COMPUTER',
+        created_at          TEXT    DEFAULT (datetime('now'))
+    )
+    """)
+
+    # ── CELESTIAL X 2.0: Fire Spread & Exposure Assessments ────────────────────
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS fire_spread_assessments (
+        id                          INTEGER PRIMARY KEY AUTOINCREMENT,
+        event_id                    TEXT    REFERENCES fire_events(event_id),
+        assessment_time             TEXT    NOT NULL,
+        spread_potential_index      REAL,            -- 0-100
+        estimated_ros_proxy_kmh     REAL,            -- Rate of spread proxy
+        downwind_direction_deg      REAL,            -- Compass bearing
+        primary_exposure_bearing_deg REAL,
+        potential_exposure_radius_km REAL,
+        threatened_assets           TEXT,            -- JSON string of assets/reserves
+        methodology                 TEXT    DEFAULT 'CELESTIAL-X-SPREAD-v1',
+        confidence_rating           TEXT    DEFAULT 'SCREENING_ESTIMATE',
+        created_at                  TEXT    DEFAULT (datetime('now'))
+    )
+    """)
+
+    # ── CELESTIAL X 2.0: Risk Model Metadata ──────────────────────────────────
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS risk_model_metadata (
+        id              INTEGER PRIMARY KEY AUTOINCREMENT,
+        model_version   TEXT    NOT NULL,            -- e.g. CELESTIAL-X-RISK-v2
+        weights_json    TEXT    NOT NULL,
+        description     TEXT,
+        created_at      TEXT    DEFAULT (datetime('now'))
+    )
+    """)
+
+    # ── CELESTIAL X 2.0: AI Copilot Query History ─────────────────────────────
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS ai_query_history (
+        id              INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_query      TEXT    NOT NULL,
+        sql_executed    TEXT,
+        response_text   TEXT,
+        rows_returned   INTEGER,
+        latency_ms      REAL,
+        created_at      TEXT    DEFAULT (datetime('now'))
+    )
+    """)
+
+    # ── CELESTIAL X 2.0: Data Source Metadata & Quota Tracking ─────────────────
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS data_source_metadata (
+        id              INTEGER PRIMARY KEY AUTOINCREMENT,
+        source_name     TEXT    NOT NULL UNIQUE,     -- NASA_FIRMS | METEOMATICS | PLANETARY_COMPUTER
+        endpoint_url    TEXT,
+        last_status     TEXT,                        -- OK | ERROR | QUOTA_EXCEEDED | OFFLINE_FALLBACK
+        last_synced_at  TEXT,
+        quota_remaining INTEGER,
+        error_count     INTEGER DEFAULT 0,
+        updated_at      TEXT    DEFAULT (datetime('now'))
+    )
+    """)
+
     # ── Indexes ───────────────────────────────────────────────────────────────
     idx = [
         "CREATE INDEX IF NOT EXISTS idx_raw_obs_datetime  ON raw_observations(acq_datetime)",
@@ -204,6 +303,11 @@ def init_database() -> None:
         "CREATE INDEX IF NOT EXISTS idx_event_h3_cell     ON event_h3_cells(h3_cell)",
         "CREATE INDEX IF NOT EXISTS idx_risk_event        ON risk_predictions(event_id)",
         "CREATE INDEX IF NOT EXISTS idx_reports_event     ON reports(event_id)",
+        "CREATE INDEX IF NOT EXISTS idx_weather_event     ON weather_observations(event_id)",
+        "CREATE INDEX IF NOT EXISTS idx_weather_time      ON weather_observations(observation_time)",
+        "CREATE INDEX IF NOT EXISTS idx_env_event         ON environmental_context(event_id)",
+        "CREATE INDEX IF NOT EXISTS idx_spread_event      ON fire_spread_assessments(event_id)",
+        "CREATE INDEX IF NOT EXISTS idx_ai_history_time   ON ai_query_history(created_at)",
     ]
     for stmt in idx:
         cur.execute(stmt)
@@ -237,14 +341,58 @@ def get_stats() -> dict:
         stats["high_risk"] = cur.fetchone()[0]
         cur.execute("SELECT COUNT(*) FROM reports")
         stats["reports_total"] = cur.fetchone()[0]
+        cur.execute("SELECT COUNT(*) FROM weather_observations")
+        stats["weather_total"] = cur.fetchone()[0]
+        cur.execute("SELECT COUNT(*) FROM environmental_context")
+        stats["env_total"] = cur.fetchone()[0]
+        cur.execute("SELECT COUNT(*) FROM fire_spread_assessments")
+        stats["spread_total"] = cur.fetchone()[0]
     except Exception:
         stats = {k: 0 for k in [
             "raw_total","modis_total","viirs_total","events_total",
-            "events_active","events_closed","events_expanding","high_risk","reports_total"
+            "events_active","events_closed","events_expanding","high_risk","reports_total",
+            "weather_total", "env_total", "spread_total"
         ]}
     finally:
         conn.close()
     return stats
+
+
+def log_ai_query(user_query: str, sql_executed: str, response_text: str, rows_returned: int = 0, latency_ms: float = 0.0) -> None:
+    """Log an AI copilot query and its SQL provenance for auditable history."""
+    try:
+        conn = get_connection()
+        cur = conn.cursor()
+        cur.execute("""
+            INSERT INTO ai_query_history (user_query, sql_executed, response_text, rows_returned, latency_ms)
+            VALUES (?, ?, ?, ?, ?)
+        """, (user_query, sql_executed, response_text, rows_returned, round(latency_ms, 2)))
+        conn.commit()
+        conn.close()
+    except Exception:
+        pass
+
+
+def update_data_source_metadata(source_name: str, endpoint_url: str, last_status: str, quota_remaining: int = None, error_count: int = 0) -> None:
+    """Record status, timestamps, and quotas for external satellite/weather/STAC APIs."""
+    try:
+        conn = get_connection()
+        cur = conn.cursor()
+        cur.execute("""
+            INSERT INTO data_source_metadata (source_name, endpoint_url, last_status, last_synced_at, quota_remaining, error_count, updated_at)
+            VALUES (?, ?, ?, datetime('now'), ?, ?, datetime('now'))
+            ON CONFLICT(source_name) DO UPDATE SET
+                endpoint_url = excluded.endpoint_url,
+                last_status = excluded.last_status,
+                last_synced_at = datetime('now'),
+                quota_remaining = COALESCE(excluded.quota_remaining, data_source_metadata.quota_remaining),
+                error_count = data_source_metadata.error_count + excluded.error_count,
+                updated_at = datetime('now')
+        """, (source_name, endpoint_url, last_status, quota_remaining, error_count))
+        conn.commit()
+        conn.close()
+    except Exception:
+        pass
 
 
 if __name__ == "__main__":

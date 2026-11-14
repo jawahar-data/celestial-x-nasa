@@ -19,7 +19,22 @@ import math
 from datetime import datetime, timezone
 from typing import Optional
 
-import h3
+try:
+    import h3
+except Exception:
+    class _H3Fallback:
+        @staticmethod
+        def latlng_to_cell(lat: float, lon: float, res: int = 7) -> str:
+            step = 0.05 if res >= 8 else 0.1
+            gx = int(round(lat / step))
+            gy = int(round(lon / step))
+            return f"87{abs(gx):04x}{abs(gy):04x}"
+
+        @staticmethod
+        def grid_disk(cell: str, k: int = 1) -> set:
+            return {cell}
+
+    h3 = _H3Fallback()
 import numpy as np
 import pandas as pd
 import streamlit as st

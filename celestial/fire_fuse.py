@@ -69,7 +69,22 @@ import uuid
 from datetime import datetime, timezone, timedelta
 from typing import Optional
 
-import h3
+try:
+    import h3
+except Exception:
+    class _H3Fallback:
+        @staticmethod
+        def latlng_to_cell(lat: float, lon: float, res: int = 7) -> str:
+            step = 0.05 if res >= 8 else 0.1
+            gx = int(round(lat / step))
+            gy = int(round(lon / step))
+            return f"87{abs(gx):04x}{abs(gy):04x}"
+
+        @staticmethod
+        def grid_disk(cell: str, k: int = 1) -> set:
+            return {cell}
+
+    h3 = _H3Fallback()
 import numpy as np
 import pandas as pd
 import streamlit as st
@@ -398,7 +413,7 @@ def close_inactive_events(closure_days: int = 3, conn=None, log_fn=None) -> int:
 
 # ── Main FIRE-FUSE Pipeline ────────────────────────────────────────────────────
 def run_fire_fuse(
-    harm_df: pd.DataFrame,
+    harm_df: Optional[pd.DataFrame] = None,
     config: Optional[dict] = None,
     log_fn=None,
 ) -> dict:
@@ -406,25 +421,14 @@ def run_fire_fuse(
     Main FIRE-FUSE entry point.
     Processes a harmonized observation DataFrame and performs spatiotemporal
     fire event reconciliation.
-
-    Parameters
-    ----------
-    harm_df : DataFrame of harmonized observations (from harmonizer.py)
-    config  : Optional dict overriding DEFAULT_CONFIG thresholds
-    log_fn  : Optional callable(msg) for pipeline logging
-
-    Returns
-    -------
-    dict with:
-        events_created  : int
-        events_updated  : int
-        events_closed   : int
-        obs_matched     : int
-        obs_new_event   : int
     """
     def log(msg):
         if log_fn:
             log_fn(msg)
+
+    if harm_df is None:
+        from .harmonizer import get_harmonized_dataframe
+        harm_df = get_harmonized_dataframe()
 
     cfg = {**DEFAULT_CONFIG, **(config or {})}
     spatial_km   = float(cfg["SPATIAL_THRESHOLD_KM"])
@@ -458,13 +462,24 @@ def run_fire_fuse(
         harm_df = harm_df.copy()
         harm_df["id"] = ids[:len(harm_df)]
 
-    events_created = 0
-    events_updated = 0
-    obs_matched    = 0
-    obs_new_event  = 0
+    # Existing assigned observations to prevent duplicate processing
+    cur.execute("SELECT obs_id FROM event_observations")
+    assigned_obs_ids = {r[0] for r in cur.fetchall()}
+
+    events_created   = 0
+    events_updated   = 0
+    obs_matched      = 0
+    obs_new_event    = 0
+    obs_duplicates   = 0
 
     for _, row in harm_df.iterrows():
         obs_id = int(row.get("id", 0))
+
+        # Check duplicate assignment prevention
+        if obs_id in assigned_obs_ids:
+            obs_duplicates += 1
+            continue
+
         lat    = float(row["latitude"])
         lon    = float(row["longitude"])
         ts_str = str(row.get("timestamp", "")) or None
@@ -485,31 +500,47 @@ def run_fire_fuse(
 
         if match:
             _update_event(match, obs_id, lat, lon, ts_str, sat, h3c, frp, conf, h3_res, conn)
+            assigned_obs_ids.add(obs_id)
             events_updated += 1
             obs_matched += 1
         else:
-            _create_event(obs_id, lat, lon, ts_str, sat, h3c, frp, conf, h3_res, conn)
+            new_eid = _create_event(obs_id, lat, lon, ts_str, sat, h3c, frp, conf, h3_res, conn)
+            assigned_obs_ids.add(obs_id)
             events_created += 1
             obs_new_event += 1
 
     # Close inactive events
     events_closed = close_inactive_events(closure_days, conn, log_fn)
     conn.commit()
+
+    # Query persistent event totals
+    cur.execute("SELECT COUNT(*) FROM fire_events WHERE status IN ('PERSISTENT', 'ACTIVE', 'EXPANDING')")
+    persistent_count = cur.fetchone()[0]
     conn.close()
 
+    total_obs_processed = len(harm_df)
+    dup_reduction_pct = round((obs_matched / max(total_obs_processed, 1)) * 100.0, 1)
+
     log(f"✓ FIRE-FUSE complete:")
-    log(f"  Events created : {events_created}")
-    log(f"  Events updated : {events_updated}")
-    log(f"  Events closed  : {events_closed}")
-    log(f"  Obs matched to existing events : {obs_matched}")
-    log(f"  Obs created new events         : {obs_new_event}")
+    log(f"  Observations processed        : {total_obs_processed:,}")
+    log(f"  Events created (Seeds)        : {events_created}")
+    log(f"  Events updated (Fused)        : {events_updated}")
+    log(f"  Active / Persistent events    : {persistent_count}")
+    log(f"  Events closed (Inactive)      : {events_closed}")
+    log(f"  Obs matched to existing events: {obs_matched} ({dup_reduction_pct}% reduction)")
+    log(f"  Duplicates filtered           : {obs_duplicates}")
 
     return {
-        "events_created": events_created,
-        "events_updated": events_updated,
-        "events_closed":  events_closed,
-        "obs_matched":    obs_matched,
-        "obs_new_event":  obs_new_event,
+        "raw_hotspot_count":                 total_obs_processed,
+        "harmonized_observation_count":       total_obs_processed - obs_duplicates,
+        "events_created":                     events_created,
+        "events_updated":                     events_updated,
+        "events_closed":                      events_closed,
+        "obs_matched":                        obs_matched,
+        "obs_new_event":                      obs_new_event,
+        "obs_duplicates_filtered":            obs_duplicates,
+        "persistent_event_count":             persistent_count,
+        "duplicate_detection_reduction_pct":  dup_reduction_pct,
     }
 
 

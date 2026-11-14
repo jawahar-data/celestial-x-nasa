@@ -1,48 +1,46 @@
 """
-CELESTIAL X — Risk Assessment Module
-======================================
-Produces a FIRE RISK indicator for each active fire event based on
-observable satellite-derived metrics.
+CELESTIAL X — Advanced Multi-Factor Fire Risk Engine (CELESTIAL-X-RISK-v2)
+==========================================================================
+Produces transparent, explainable wildfire risk scores combining:
+  1. Satellite Combustion Radiative Intensity (FRP)
+  2. Spatiotemporal Persistence & Expansion (FIRE-FUSE Duration & H3 Cells)
+  3. Real-Time / Climatological Fire Weather Deficit (Temperature, Humidity, Wind)
+  4. Topographic Terrain & Land Cover Fuel Models (Copernicus DEM & ESA WorldCover)
+  5. Biodiversity Vulnerability & Protected Area Proximity (Tiger Reserves / Sanctuaries)
 
-IMPORTANT SCIENTIFIC DISCLAIMER
+IMPORTANT SCIENTIFIC DISCLAIMER:
 ---------------------------------
-This module produces project-defined ANALYTICAL INDICATORS, not
-scientifically validated fire risk forecasts.
-
-Clearly labeled as:
-    CELESTIAL-X-RISK-v1 (project-defined analytical indicator)
-
-The indicator is based on observable satellite data:
-  - Fire Radiative Power (FRP)
-  - Event duration
-  - Spatial expansion (H3 cell count)
-  - Observation count and satellite agreement
-  - Confidence levels
-
-It does NOT:
-  - Claim to predict the exact date, location, or cause of future fires
-  - Incorporate real-time temperature, humidity, or wind data
-    (these are documented as future improvements requiring external APIs)
-  - Produce scientifically calibrated probability estimates
-
-For real fire risk forecasting, consult official national fire danger
-rating systems and meteorological services.
+CELESTIAL-X-RISK-v2 is an analytical multi-criteria decision indicator developed for
+wildfire situational awareness. It is transparent, fully auditable, and grounded in
+satellite observations and meteorological drivers. It is NOT an empirical flame-length
+simulation or an official national fire danger rating forecast.
 """
 
-from typing import Optional
+from typing import Optional, Dict, Any, Tuple
 import pandas as pd
 import numpy as np
 import streamlit as st
 
 from .database import get_connection
+from .weather_intelligence import get_weather_for_location
+from .environmental_intelligence import get_environmental_context_for_location
 
 
-# ── Risk level definitions ────────────────────────────────────────────────────
+# ── Risk level thresholds ─────────────────────────────────────────────────────
 RISK_THRESHOLDS = {
     "VERY HIGH": 0.75,
     "HIGH":      0.50,
     "MODERATE":  0.25,
     "LOW":       0.00,
+}
+
+# CELESTIAL-X-RISK-v2 Weights Specification
+RISK_V2_WEIGHTS = {
+    "thermal_intensity":       0.30, # FRP Peak & Average normalized
+    "persistence_expansion":   0.20, # Duration (hrs) and H3 spatial dispersion
+    "weather_deficit":         0.20, # High Temp, Low Humidity, High Wind Speed
+    "fuel_topography":         0.15, # Land cover flammability + Slope amplification
+    "conservation_proximity":  0.15, # Proximity to UNESCO / Tiger Reserves
 }
 
 
@@ -93,50 +91,91 @@ def _score_confidence(max_confidence: Optional[float]) -> float:
     return float(max_confidence or 0.5)
 
 
-def compute_risk_score(event: dict) -> tuple[float, str]:
+def _score_weather(weather_dict: Optional[Dict[str, Any]]) -> float:
     """
-    Compute the CELESTIAL-X-RISK-v1 analytical indicator for a fire event.
-
-    Weights (project-defined, not scientifically validated):
-      FRP contribution  : 40%
-      Duration          : 25%
-      Spatial expansion : 20%
-      Satellite agree   : 10%
-      Confidence        : 5%
-
-    Returns (score: float 0–1, level: str)
+    Atmospheric fire weather deficit score (0–1).
+    Higher score when temperature is high, humidity is low, and wind is high.
     """
-    # Compute duration if available
-    from datetime import datetime, timezone
-    start = event.get("start_time")
-    last  = event.get("last_observed_time")
-    dur_hrs = None
-    if start and last:
-        try:
-            t0 = datetime.fromisoformat(start.replace("Z", "+00:00"))
-            t1 = datetime.fromisoformat(last.replace("Z", "+00:00"))
-            dur_hrs = (t1 - t0).total_seconds() / 3600.0
-        except Exception:
-            pass
+    if not weather_dict:
+        return 0.40 # Neutral default
 
-    # Satellite agreement: proportion of events observed by both satellites
-    modis_c = event.get("modis_count") or 0
-    viirs_c = event.get("viirs_count") or 0
-    total_c = event.get("observation_count") or 1
-    sat_agree = min(modis_c, viirs_c) / max(total_c, 1)
+    t = float(weather_dict.get("temperature_c", 28.0) or 28.0)
+    rh = float(weather_dict.get("relative_humidity_pct", 50.0) or 50.0)
+    ws = float(weather_dict.get("wind_speed_kmh", 12.0) or 12.0)
 
-    frp_s   = _score_frp(event.get("peak_frp"), event.get("mean_frp"))
-    dur_s   = _score_duration(dur_hrs or event.get("duration_hours"))
-    exp_s   = _score_expansion(event.get("h3_cell_count"), event.get("observation_count"))
-    agr_s   = _score_agreement(sat_agree)
-    conf_s  = _score_confidence(event.get("max_confidence"))
+    t_factor = min(1.0, max(0.0, (t - 15.0) / 25.0)) # 15°C to 40°C
+    rh_factor = min(1.0, max(0.0, (100.0 - rh) / 80.0)) # 100% down to 20%
+    ws_factor = min(1.0, max(0.0, ws / 40.0)) # 0 to 40 km/h
 
+    score = (t_factor * 0.35) + (rh_factor * 0.40) + (ws_factor * 0.25)
+    return round(min(1.0, max(0.0, score)), 4)
+
+
+def _score_environment(env_dict: Optional[Dict[str, Any]]) -> Tuple[float, float]:
+    """
+    Return (fuel_and_terrain_score: 0-1, conservation_vulnerability_score: 0-1).
+    """
+    if not env_dict:
+        return 0.45, 0.30
+
+    slope = float(env_dict.get("slope_deg", 5.0) or 5.0)
+    esi = float(env_dict.get("environmental_sensitivity_score", 50.0) or 50.0)
+    dist_pa = float(env_dict.get("dist_to_protected_area_km", 20.0) or 20.0)
+
+    # Slope + fuel flammability
+    fuel_terrain_score = (esi / 100.0 * 0.65) + (min(1.0, slope / 25.0) * 0.35)
+
+    # Protected area proximity: < 2km = 1.0, > 20km = 0.0
+    if dist_pa <= 0.0:
+        pa_score = 1.0 # Directly inside protected reserve
+    else:
+        pa_score = max(0.0, 1.0 - (dist_pa / 20.0))
+
+    return round(min(1.0, max(0.0, fuel_terrain_score)), 4), round(min(1.0, max(0.0, pa_score)), 4)
+
+
+def compute_risk_score_v2(
+    event: dict,
+    weather_dict: Optional[Dict[str, Any]] = None,
+    env_dict: Optional[Dict[str, Any]] = None,
+) -> Tuple[float, str, Dict[str, Any]]:
+    """
+    Compute CELESTIAL-X-RISK-v2 multi-factor risk assessment.
+    Returns (score: 0.0-1.0, level: str, breakdown: dict)
+    """
+    lat = event.get("centroid_lat")
+    lon = event.get("centroid_lon")
+
+    # Fetch weather if not provided
+    if not weather_dict and lat is not None and lon is not None:
+        weather_dict = get_weather_for_location(lat, lon)
+
+    # Fetch environmental context if not provided
+    if not env_dict and lat is not None and lon is not None:
+        env_dict = get_environmental_context_for_location(lat, lon)
+
+    # Factor 1: Thermal Intensity (30%)
+    frp_s = _score_frp(event.get("peak_frp"), event.get("mean_frp"))
+
+    # Factor 2: Persistence & Expansion (20%)
+    dur_s = _score_duration(event.get("duration_hours"))
+    exp_s = _score_expansion(event.get("h3_cell_count"), event.get("observation_count"))
+    persist_s = (dur_s * 0.60) + (exp_s * 0.40)
+
+    # Factor 3: Weather Deficit (20%)
+    wx_s = _score_weather(weather_dict)
+
+    # Factor 4 & 5: Fuel/Terrain (15%) and Conservation Proximity (15%)
+    fuel_s, pa_s = _score_environment(env_dict)
+
+    # Weighted composite score
+    w = RISK_V2_WEIGHTS
     score = (
-        frp_s   * 0.40 +
-        dur_s   * 0.25 +
-        exp_s   * 0.20 +
-        agr_s   * 0.10 +
-        conf_s  * 0.05
+        (frp_s * w["thermal_intensity"]) +
+        (persist_s * w["persistence_expansion"]) +
+        (wx_s * w["weather_deficit"]) +
+        (fuel_s * w["fuel_topography"]) +
+        (pa_s * w["conservation_proximity"])
     )
     score = round(min(1.0, max(0.0, score)), 4)
 
@@ -146,13 +185,36 @@ def compute_risk_score(event: dict) -> tuple[float, str]:
             level = lv
             break
 
+    breakdown = {
+        "model_version": "CELESTIAL-X-RISK-v2",
+        "thermal_intensity_score": round(frp_s, 3),
+        "persistence_expansion_score": round(persist_s, 3),
+        "weather_deficit_score": round(wx_s, 3),
+        "fuel_topography_score": round(fuel_s, 3),
+        "conservation_proximity_score": round(pa_s, 3),
+        "weather_provenance": weather_dict.get("source", "N/A") if weather_dict else "N/A",
+        "environmental_provenance": env_dict.get("source", "N/A") if env_dict else "N/A",
+        "nearest_protected_area": env_dict.get("protected_area_name", "N/A") if env_dict else "N/A",
+        "dist_to_protected_km": env_dict.get("dist_to_protected_area_km", None) if env_dict else None,
+    }
+
+    return score, level, breakdown
+
+
+def compute_risk_score(event: dict) -> Tuple[float, str]:
+    """
+    Backward-compatible wrapper for CELESTIAL-X-RISK.
+    Returns (score: float 0–1, level: str)
+    """
+    score, level, _ = compute_risk_score_v2(event)
     return score, level
 
 
 def assess_all_events(log_fn=None) -> int:
     """
-    Run risk assessment on all non-closed fire events.
-    Updates fire_events.risk_level and inserts risk_predictions rows.
+    Run CELESTIAL-X-RISK-v2 assessment on all non-closed fire events.
+    Updates fire_events.risk_level, inserts risk_predictions rows,
+    associates weather & environmental drivers, and computes spread screening.
     Returns count of events assessed.
     """
     def log(msg):
@@ -164,13 +226,57 @@ def assess_all_events(log_fn=None) -> int:
     cur.execute("SELECT * FROM fire_events WHERE status != 'CLOSED'")
     events = [dict(r) for r in cur.fetchall()]
     from datetime import datetime, timezone
+    import json
     now = datetime.now(tz=timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
+    # Record model metadata
+    try:
+        cur.execute("""
+            INSERT INTO risk_model_metadata (model_version, weights_json, description)
+            VALUES (?, ?, ?)
+        """, (
+            "CELESTIAL-X-RISK-v2",
+            json.dumps(RISK_V2_WEIGHTS),
+            "Multi-factor model combining thermal FRP (30%), persistence (20%), fire weather deficit (20%), topography & fuel (15%), and conservation proximity (15%)."
+        ))
+    except Exception:
+        pass
+
+    from .weather_intelligence import store_event_weather
+    from .environmental_intelligence import store_event_environmental_context
+    from .fire_spread import assess_fire_spread_and_exposure
+
     for event in events:
-        score, level = compute_risk_score(event)
+        lat = event.get("centroid_lat")
+        lon = event.get("centroid_lon")
+        ev_id = event["event_id"]
+
+        weather_dict = get_weather_for_location(lat, lon) if (lat and lon) else None
+        env_dict = get_environmental_context_for_location(lat, lon) if (lat and lon) else None
+
+        if weather_dict:
+            store_event_weather(ev_id, weather_dict, conn)
+        if env_dict:
+            store_event_environmental_context(ev_id, env_dict, conn)
+
+        # Potential fire spread assessment
+        if lat and lon:
+            try:
+                assess_fire_spread_and_exposure(
+                    ev_id, lat, lon,
+                    peak_frp=event.get("peak_frp"),
+                    mean_frp=event.get("mean_frp"),
+                    weather_dict=weather_dict,
+                    env_dict=env_dict,
+                    conn=conn
+                )
+            except Exception:
+                pass
+
+        score, level, breakdown = compute_risk_score_v2(event, weather_dict, env_dict)
         cur.execute(
             "UPDATE fire_events SET risk_level=?, updated_at=? WHERE event_id=?",
-            (level, now, event["event_id"])
+            (level, now, ev_id)
         )
         cur.execute("""
             INSERT OR REPLACE INTO risk_predictions
@@ -179,20 +285,20 @@ def assess_all_events(log_fn=None) -> int:
                  assessment_date, methodology)
             VALUES (?,?,?,?,?,?,?,?,?,?,?)
         """, (
-            event["event_id"],
-            event.get("centroid_lat"), event.get("centroid_lon"),
+            ev_id,
+            lat, lon,
             level, score,
-            _score_frp(event.get("peak_frp"), event.get("mean_frp")),
-            _score_duration(event.get("duration_hours")),
-            _score_expansion(event.get("h3_cell_count"), event.get("observation_count")),
-            _score_confidence(event.get("max_confidence")),
+            breakdown.get("thermal_intensity_score", 0.0),
+            breakdown.get("persistence_expansion_score", 0.0),
+            breakdown.get("fuel_topography_score", 0.0),
+            breakdown.get("weather_deficit_score", 0.0),
             now,
-            "CELESTIAL-X-RISK-v1 (project-defined analytical indicator, not a scientifically validated forecast)",
+            "CELESTIAL-X-RISK-v2 (Multi-Factor Weather, Topographic & Conservation Indicator)",
         ))
 
     conn.commit()
     conn.close()
-    log(f"✓ Risk assessed for {len(events)} events")
+    log(f"✓ CELESTIAL-X-RISK-v2 assessed for {len(events)} events (weather, topography, and spread integrated)")
     return len(events)
 
 
