@@ -50,3 +50,4 @@ EXPOSE 8080
 
 # Launch CELESTIAL X multi-page application
 CMD ["sh", "-c", "streamlit run app.py --server.port=${PORT} --server.address=0.0.0.0"]
+

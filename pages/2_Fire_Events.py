@@ -306,9 +306,25 @@ if selected_id:
         w_c = get_event_weather(selected_id) or {}
         e_c = get_event_environmental_context(selected_id) or {}
         rv2 = compute_risk_score_v2(ev.to_dict(), w_c, e_c)
-        r_score = rv2["composite_risk_score"]
-        r_level = rv2["risk_level"]
-        f_scores = rv2["factor_scores"]
+        if hasattr(rv2, "get"):
+            r_score = rv2.get("composite_risk_score", rv2[0] if isinstance(rv2, tuple) else 0.0)
+            r_level = rv2.get("risk_level", rv2[1] if isinstance(rv2, tuple) else "LOW")
+            f_scores = rv2.get("factor_scores", {})
+        elif isinstance(rv2, tuple):
+            r_score = rv2[0]
+            r_level = rv2[1]
+            brk = rv2[2] if len(rv2) > 2 and isinstance(rv2[2], dict) else {}
+            f_scores = {
+                "thermal_intensity": brk.get("thermal_intensity_score", 0.0),
+                "duration_persistence": brk.get("persistence_expansion_score", 0.0),
+                "weather_deficit": brk.get("weather_deficit_score", 0.0),
+                "fuel_topography": brk.get("fuel_topography_score", 0.0),
+                "conservation_proximity": brk.get("conservation_proximity_score", 0.0),
+            }
+        else:
+            r_score = 0.0
+            r_level = "LOW"
+            f_scores = {}
 
         st.markdown(f"""
 > 🛡️ **CELESTIAL-X-RISK-v2** — Transparent 5-Pillar Scientific Multi-Criteria Index
@@ -318,8 +334,8 @@ if selected_id:
 | **Thermal Intensity** | 30% | `{f_scores.get('thermal_intensity', 0):.3f}` | {ev.get('peak_frp', 0) or 0:.0f} MW peak FRP |
 | **Duration & Persistence** | 20% | `{f_scores.get('duration_persistence', 0):.3f}` | {dur_str} ({ev.get('observation_count', 0)} obs) |
 | **Fire Weather Deficit** | 20% | `{f_scores.get('weather_deficit', 0):.3f}` | RH: {w_c.get('relative_humidity_pct', 'N/A')}%, Wind: {w_c.get('wind_speed_kmh', 'N/A')} km/h |
-| **Fuel & Topography** | 15% | `{f_scores.get('fuel_topography', 0):.3f}` | Slope: {e_c.get('slope_deg', 'N/A')}°, Fuel: {e_c.get('landcover_class', 'N/A')} |
-| **Conservation Proximity** | 15% | `{f_scores.get('conservation_proximity', 0):.3f}` | {e_c.get('nearest_protected_area', 'None')} ({e_c.get('protected_area_distance_km', 'N/A')} km) |
+| **Fuel & Topography** | 15% | `{f_scores.get('fuel_topography', 0):.3f}` | Slope: {e_c.get('slope_deg', 'N/A')}°, Fuel: {e_c.get('landcover_class') or e_c.get('land_cover_class') or 'N/A'} |
+| **Conservation Proximity** | 15% | `{f_scores.get('conservation_proximity', 0):.3f}` | {e_c.get('nearest_protected_area') or e_c.get('protected_area_name') or 'None'} ({e_c.get('protected_area_distance_km') or e_c.get('dist_to_protected_area_km') or 'N/A'} km) |
 
 **Composite Risk Score:** `{r_score:.4f} / 1.0000` &nbsp;&nbsp;|&nbsp;&nbsp; **Classification:** **{r_level}**
         """)

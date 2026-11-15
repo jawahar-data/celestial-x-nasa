@@ -439,8 +439,18 @@ def run_fire_fuse(
 
     if harm_df.empty:
         log("⚠ No harmonized observations to process.")
-        return {"events_created": 0, "events_updated": 0, "events_closed": 0,
-                "obs_matched": 0, "obs_new_event": 0}
+        return {
+            "raw_hotspot_count":                 0,
+            "harmonized_observation_count":       0,
+            "events_created":                     0,
+            "events_updated":                     0,
+            "events_closed":                      0,
+            "obs_matched":                        0,
+            "obs_new_event":                      0,
+            "obs_duplicates_filtered":            0,
+            "persistent_event_count":             0,
+            "duplicate_detection_reduction_pct":  0.0,
+        }
 
     log(f"⚡ FIRE-FUSE: Processing {len(harm_df):,} harmonized observations")
     log(f"   Spatial threshold: {spatial_km} km | Temporal: {temporal_hrs} hrs | "

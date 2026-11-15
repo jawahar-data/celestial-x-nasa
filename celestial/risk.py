@@ -134,6 +134,49 @@ def _score_environment(env_dict: Optional[Dict[str, Any]]) -> Tuple[float, float
     return round(min(1.0, max(0.0, fuel_terrain_score)), 4), round(min(1.0, max(0.0, pa_score)), 4)
 
 
+class RiskScoreResult(tuple):
+    """
+    Dual-compatibility return object:
+    1. Unpackable as a 3-tuple: (score, level, breakdown)
+    2. Indexable like a dict: rv2["composite_risk_score"], rv2["risk_level"], rv2["factor_scores"]
+    """
+    def __new__(cls, score: float, level: str, breakdown: dict):
+        return super().__new__(cls, (score, level, breakdown))
+
+    def __init__(self, score: float, level: str, breakdown: dict):
+        self.score = score
+        self.level = level
+        self.breakdown = breakdown
+        self._dict = {
+            "composite_risk_score": score,
+            "risk_score": score,
+            "risk_level": level,
+            "level": level,
+            "factor_scores": {
+                "thermal_intensity": breakdown.get("thermal_intensity_score", 0.0),
+                "duration_persistence": breakdown.get("persistence_expansion_score", 0.0),
+                "weather_deficit": breakdown.get("weather_deficit_score", 0.0),
+                "fuel_topography": breakdown.get("fuel_topography_score", 0.0),
+                "conservation_proximity": breakdown.get("conservation_proximity_score", 0.0),
+            },
+            "breakdown": breakdown,
+            **breakdown
+        }
+
+    def __getitem__(self, item):
+        if isinstance(item, str):
+            if item in self._dict:
+                return self._dict[item]
+            return self.breakdown.get(item)
+        return super().__getitem__(item)
+
+    def get(self, key, default=None):
+        return self._dict.get(key, default)
+
+    def __contains__(self, item):
+        return item in self._dict
+
+
 def compute_risk_score_v2(
     event: dict,
     weather_dict: Optional[Dict[str, Any]] = None,
@@ -198,7 +241,7 @@ def compute_risk_score_v2(
         "dist_to_protected_km": env_dict.get("dist_to_protected_area_km", None) if env_dict else None,
     }
 
-    return score, level, breakdown
+    return RiskScoreResult(score, level, breakdown)
 
 
 def compute_risk_score(event: dict) -> Tuple[float, str]:

@@ -53,3 +53,4 @@ jobs:
         sleep 10
         curl -f http://localhost:8080/_stcore/health || exit 1
         docker stop test-container
+
